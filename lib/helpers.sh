@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 
+c_reset="\033[0m"
+c_brand="\033[38;2;220;20;60m"   # crimson
+
 print_banner() {
   clear
+  echo -ne "$c_brand"
   cat <<'BANNER'
-<your chosen ASCII art goes here, exactly as shown earlier>
+███████╗███╗   ███╗      ███████╗███████╗██████╗  ██████╗ ██████╗  █████╗ 
+██╔════╝████╗ ████║      ██╔════╝██╔════╝██╔══██╗██╔═══██╗██╔══██╗██╔══██╗
+█████╗  ██╔████╔██║█████╗█████╗  █████╗  ██║  ██║██║   ██║██████╔╝███████║
+██╔══╝  ██║╚██╔╝██║╚════╝██╔══╝  ██╔══╝  ██║  ██║██║   ██║██╔══██╗██╔══██║
+██║     ██║ ╚═╝ ██║      ██║     ███████╗██████╔╝╚██████╔╝██║  ██║██║  ██║
+╚═╝     ╚═╝     ╚═╝      ╚═╝     ╚══════╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
 BANNER
+  echo -ne "$c_reset"
   echo
   echo "  Welcome to fm-fedora — your Fedora box, set up your way."
   echo "  Sit back, this'll take a few minutes."
