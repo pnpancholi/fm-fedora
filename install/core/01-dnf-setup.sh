@@ -1,3 +1,4 @@
+# PKG: (system packages: dnf config, rpmfusion-free-release, rpmfusion-nonfree-release)
 if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf 2>/dev/null; then
   info "Tuning dnf for faster downloads..."
   sudo tee -a /etc/dnf/dnf.conf > /dev/null <<'EOF'

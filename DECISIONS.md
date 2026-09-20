@@ -6,6 +6,21 @@ Each record follows: **Context → Decision → Consequences**
 
 ---
 
+## ADR 000: Project Inspiration & Lineage
+
+**Context:** fm-fedora exists because of prior art in opinionated workstation installers.
+
+**Decision:** Acknowledge **[Omakub](https://github.com/basecamp/omakub)** (Ubuntu) and **[Omarchy](https://github.com/basecamp/omarchy)** (Arch) as direct inspiration. fm-fedora adapts their core idea — "one command to a fully configured, opinionated workstation" — to Fedora Linux with different technical choices (Hyprland over GNOME/Sway, Vicinae over Ghostty/Kitty, bash modules over Ruby/Make).
+
+**Consequences:**
+- ✅ Clear lineage helps users understand the "why"
+- ✅ Avoids reinventing solved problems (bootstrap pattern, module system)
+- ✅ MIT license compatibility — no legal friction
+- ❌ Must differentiate clearly to avoid confusion
+- 🔄 Document key divergences in subsequent ADRs (distro, compositor, terminal, shell, package manager)
+
+---
+
 ## ADR 001: Bash as Implementation Language
 
 **Context:** Need a zero-dependency installer that runs on a minimal Fedora install (no Python, no Ansible).

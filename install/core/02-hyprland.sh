@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PKG: hyprland xdg-desktop-portal-hyprland hyprpaper polkit-gnome brightnessctl playerctl pavucontrol
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing Hyprland core packages..."

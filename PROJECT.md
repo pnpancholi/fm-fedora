@@ -1,5 +1,7 @@
 # {{PROJECT_NAME}} — Project Context
 
+> **Inspired by:** [Omakub](https://github.com/basecamp/omakub) (Ubuntu) and [Omarchy](https://github.com/basecamp/omarchy) (Arch). Different direction, same spirit. MIT-licensed.
+
 ## Stack
 - {{OS_DISTRO}} ({{OS_VERSION}})
 - {{COMPOSER}} ({{COMPOSER_SOURCE}})

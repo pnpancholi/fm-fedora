@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FM_FEDORA_PATH="${FM_FEDORA_PATH:-$HOME/.local/share/fm-fedora}"
+export FM_FEDORA_PATH
+
+source "$FM_FEDORA_PATH/lib/helpers.sh"
+source "$FM_FEDORA_PATH/lib/fm-core.sh"
+
+print_banner
+
+case "${1:-}" in
+    upgrade)
+        shift
+        fm_upgrade "$@"
+        ;;
+    inspect)
+        shift
+        fm_inspect "$@"
+        ;;
+    uninstall)
+        shift
+        fm_uninstall "$@"
+        ;;
+    ""|help|--help|-h)
+        fm_usage
+        ;;
+    *)
+        error "Unknown command: $1"
+        fm_usage
+        exit 1
+        ;;
+esac

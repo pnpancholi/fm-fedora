@@ -1,15 +1,8 @@
-```text
-███████╗███╗   ███╗      ███████╗███████╗██████╗  ██████╗ ██████╗  █████╗ 
-██╔════╝████╗ ████║      ██╔════╝██╔════╝██╔══██╗██╔═══██╗██╔══██╗██╔══██╗
-█████╗  ██╔████╔██║█████╗█████╗  █████╗  ██║  ██║██║   ██║██████╔╝███████║
-██╔══╝  ██║╚██╔╝██║╚════╝██╔══╝  ██╔══╝  ██║  ██║██║   ██║██╔══██╗██╔══██║
-██║     ██║ ╚═╝ ██║      ██║     ███████╗██████╔╝╚██████╔╝██║  ██║██║  ██║
-╚═╝     ╚═╝     ╚═╝      ╚═╝     ╚══════╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
-```
+<div align="center">
+  <img src="assets/fm-fedora-banner.png" alt="fm-fedora" width="600">
+</div>
 
 **A fast, mesmerizing workstation setup with strong defaults and extensible boundaries.** A minimal, modular bash toolkit to automate a fresh Fedora installation.
-
-> *Banner renders in crimson (`\033[38;2;220;20;60m`) when displayed via `print_banner()` in `lib/helpers.sh`*
 
 ## Philosophy
 
@@ -20,6 +13,10 @@ fm-fedora is built on three pillars:
 **Mesmerizing —** The experience should feel alive. Smooth animations, consistent theming, instant terminal spawn, responsive tiling. The desktop disappears; only your work remains.
 
 **Strong Defaults, Extensible Boundaries —** Opinionated out of the box (Fedora + Hyprland + Vicinae + Waybar + modern CLI tools), but every layer is replaceable. Modules run in order, config lives in plain files, no framework lock-in. Fork one script or the whole thing.
+
+## Inspiration & Credit
+
+This project is inspired by **[Omakub](https://github.com/basecamp/omakub)** and **[Omarchy](https://github.com/basecamp/omarchy)** — excellent opinionated workstation setups for Ubuntu and Arch respectively. fm-fedora takes a different direction based on personal preferences and experience with those projects. No affiliation; full credit to the original creators for pioneering the "opinionated workstation installer" concept. Both projects are MIT-licensed.
 
 ## Quick Start
 

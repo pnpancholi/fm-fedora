@@ -42,3 +42,13 @@ write_config_if_missing() {
   fi
 }
 
+enable_copr() {
+  local copr_name="$1"
+  if ! dnf copr list | grep -q "^$copr_name "; then
+    info "Enabling COPR: $copr_name"
+    sudo dnf copr enable -y "$copr_name"
+  else
+    info "COPR already enabled: $copr_name"
+  fi
+}
+
