@@ -5,6 +5,10 @@ set -euo pipefail
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing Hyprland core packages..."
+
+# Enable Hyprland COPR (required for hyprland, xdg-desktop-portal-hyprland, hyprpaper)
+enable_copr "solopasha/hyprland"
+
 sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpaper \
     polkit-gnome brightnessctl playerctl pavucontrol
 
