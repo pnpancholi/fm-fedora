@@ -9,8 +9,11 @@ info "Installing Hyprland core packages..."
 # Enable Hyprland COPR (Fedora 43/44 support with vendored deps)
 enable_copr "ashbuk/Hyprland-Fedora"
 
-sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpaper \
-    polkit-gnome brightnessctl playerctl pavucontrol
+# 1. Hyprland ecosystem from COPR
+sudo dnf install -y hyprland xdg-desktop-portal-hyprland
+
+# 2. Complementary packages from Fedora official repos
+sudo dnf install -y hyprpaper polkit-gnome brightnessctl playerctl pavucontrol
 
 info "Enabling xdg-desktop-portal-hyprland..."
 systemctl --user enable --now xdg-desktop-portal-hyprland
