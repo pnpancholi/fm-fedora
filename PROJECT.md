@@ -1,45 +1,45 @@
-# {{PROJECT_NAME}} — Project Context
+# fm-fedora — Project Context
 
 > **Inspired by:** [Omakub](https://github.com/basecamp/omakub) (Ubuntu) and [Omarchy](https://github.com/basecamp/omarchy) (Arch). Different direction, same spirit. MIT-licensed.
 
 ## Stack
-- {{OS_DISTRO}} ({{OS_VERSION}})
-- {{COMPOSER}} ({{COMPOSER_SOURCE}})
-- {{TERMINAL}} ({{TERMINAL_SOURCE}})
-- {{BAR}} ({{BAR_SOURCE}})
-- {{SHELL_LANG}} {{SHELL_VERSION}}+ modules, zero deps
+- **OS:** Fedora Linux (current stable)
+- **Compositor:** Hyprland (Wayland, via COPR `solopasha/hyprland`)
+- **Terminal:** Vicinae (Wayland-native, GPU-accelerated, via COPR or source)
+- **Bar:** Waybar (status bar, IPC with Hyprland)
+- **Language:** Bash 4+ modules, zero external deps
 
 ## Structure
 ```
-{{ENTRY_SCRIPT}} → {{MAIN_INSTALLER}} → {{MODULES_DIR}}/{{FIRST_MODULE}}, {{MODULES_DIR}}/{{SECOND_MODULE}}...
-{{HELPERS_FILE}} — logging + banner
+boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-*, 03-hyprland.sh, 04-vicinae.sh...
+lib/helpers.sh — logging + banner
 ```
 
 ## Current State
-- {{CURRENT_MODULE_1}}: {{CURRENT_MODULE_1_DESC}}
-- Planned: {{PLANNED_MODULES}}
+- `01-dnf-setup.sh`: DNF tuning, RPM Fusion, system upgrade
+- **Planned:** `02-packages.sh`, `03-hyprland.sh`, `04-vicinae.sh`, `05-waybar.sh`, `06-cli-tools.sh`
 
 ## Philosophy
-{{PILLAR_1}} • {{PILLAR_2}} • {{PILLAR_3}}
+**Speed** • **Mesmerizing** • **Strong Opinionated Defaults, Extensible Boundaries**
 
 ## Key Decisions (see DECISIONS.md)
-| ADR | Topic | Decision |
-|-----|-------|----------|
-| {{ADR_1_NUM}} | {{ADR_1_TOPIC}} | {{ADR_1_SUMMARY}} |
-| {{ADR_2_NUM}} | {{ADR_2_TOPIC}} | {{ADR_2_SUMMARY}} |
-| {{ADR_3_NUM}} | {{ADR_3_TOPIC}} | {{ADR_3_SUMMARY}} |
+| Topic | Decision |
+|-------|----------|
+| Distro | Fedora — cutting-edge, Wayland-first, strong upstream |
+| Compositor | Hyprland — dynamic tiling, GPU-accelerated, native Wayland |
+| Terminal | Vicinae — native Wayland, TOML config, daemon mode |
+| Language | Bash — zero deps, transparent, forkable |
 
 ## Extension Points
-- Add modules: `{{MODULES_DIR}}/NN-name.sh`
-- Config: `{{CONFIG_DIR}}/` (reserved)
-- CLI tools: `{{BIN_DIR}}/` (reserved)
+- Add modules: `install/core/NN-name.sh`
+- Config: `config/` (reserved for user overrides)
+- CLI tools: `bin/` (reserved for future commands)
 
 ## Requirements
-- {{REQ_1}}
-- {{REQ_2}}
-- {{REQ_3}}
+- Fedora Linux (current release)
+- Bash 4+, git, sudo access
 
 ## Quick Start
 ```bash
-{{QUICK_START_CMD}}
+curl -fsSL https://raw.githubusercontent.com/pnpancholi/fm-fedora/main/boot.sh | bash
 ```

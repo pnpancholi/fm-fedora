@@ -2,7 +2,7 @@
   <img src="assets/fm-fedora-banner.png" alt="fm-fedora" width="600">
 </div>
 
-**A fast, mesmerizing workstation setup with strong defaults and extensible boundaries.** A minimal, modular bash toolkit to automate a fresh Fedora installation.
+**A professional Linux workstation setup — secure, fast, and productive.** Strong opinionated defaults, extensible modules. Not just for developers — for anyone who demands more from their system.
 
 ## Philosophy
 

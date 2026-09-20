@@ -21,10 +21,13 @@ done
 
 info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\""
 
-# Modules disabled for now — enable when ready:
-# for script in "$FM_FEDORA_PATH"/install/core/*.sh; do
-#   info "-- $(basename "$script")"
-#   source "$script"
-# done
+# Core modules
+for script in \
+    "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
+    "$FM_FEDORA_PATH"/install/core/02-hyprland.sh \
+    "$FM_FEDORA_PATH"/install/core/03-waybar.sh; do
+  info "-- $(basename "$script")"
+  source "$script"
+done
 
 success "Core setup complete."

@@ -1,57 +1,73 @@
-# Agent Instructions for {{PROJECT_NAME}}
+# Agent Instructions for fm-fedora
 
 ## Quick Reference
-- **Primary command**: `{{MAIN_COMMAND}}`
-- **Lint**: `{{LINT_COMMAND}}`
-- **Test**: `{{TEST_COMMAND}}`
+- **Primary command**: `bash boot.sh` (from clone: `bash install.sh`)
+- **Lint**: `shellcheck install/**/*.sh lib/*.sh boot.sh install.sh`
+- **Test**: `bats tests/` (when added)
 
 ## Project Structure
 ```
-{{PROJECT_ROOT}}/
-├── {{KEY_DIR_1}}/
-├── {{KEY_DIR_2}}/
-├── {{KEY_FILE_1}}
-├── {{KEY_FILE_2}}
-└── AGENTS.md
+fm-fedora/
+├── boot.sh                 # Bootstrap entry point
+├── install.sh              # Main installer
+├── lib/
+│   └── helpers.sh          # Logging + banner utilities
+├── install/
+│   └── core/
+│       └── 01-dnf-setup.sh # DNF tuning, RPM Fusion, system upgrade
+├── assets/
+│   └── fm-fedora-banner.png
+├── bin/                    # Reserved: future CLI tools
+├── config/                 # Reserved: future config files
+├── AGENTS.md
+├── PROJECT.md
+├── DECISIONS.md
+└── README.md
 ```
 
 ## Conventions
-- **Module naming**: `{{MODULE_PATTERN}}`
-- **Execution order**: `{{EXECUTION_ORDER}}`
-- **Logging**: Use `{{LOGGING_FUNCTIONS}}` from `{{HELPERS_FILE}}`
-- **Privilege escalation**: `{{SUDO_POLICY}}`
-- **Shell target**: `{{SHELL_VERSION}}` (prefer `{{POSIX_PREFERENCE}}`)
+- **Module naming**: `install/core/NN-name.sh` (zero-padded numeric prefix)
+- **Execution order**: Lexical glob — `for script in install/core/*.sh; do source "$script"; done`
+- **Logging**: Use `info`, `success`, `warn`, `error` from `lib/helpers.sh`
+- **Privilege escalation**: No root execution; sudo only in modules, prompted once via `boot.sh` keepalive
+- **Shell target**: Bash 4+ (prefer POSIX where practical)
 
 ## Coding Standards
-- {{STANDARD_1}}
-- {{STANDARD_2}}
-- {{STANDARD_3}}
+- `set -euo pipefail` at top of every script
+- No external dependencies beyond `bash`, `git`, `dnf`, `sudo`
+- Each module is idempotent (safe to re-run)
+- Hardcoded values at top of modules, documented inline
 
 ## Vision / Goal
-{{ONE_SENTENCE_VISION}}
+A professional Linux workstation setup — secure, fast, and productive. Strong opinionated defaults, extensible modules. Not just for developers — for anyone who demands more from their system.
 
 ## Key Decisions (see DECISIONS.md)
-- {{DECISION_1}}
-- {{DECISION_2}}
-- {{DECISION_3}}
+- **Fedora** — Cutting-edge packages, Wayland-first, strong upstream, RPM Fusion
+- **Hyprland** — Dynamic tiling Wayland compositor, GPU-accelerated, highly configurable
+- **Vicinae** — Native Wayland terminal, GPU-rendered, TOML config, daemon mode
+- **Bash modules** — Zero deps, linear execution, easy to fork/extend
 
 ## Current State
-- **Done**: {{DONE_ITEMS}}
-- **In Progress**: {{IN_PROGRESS_ITEMS}}
-- **Planned**: {{PLANNED_ITEMS}}
+- **Done**: `01-dnf-setup.sh` (DNF tuning, RPM Fusion, system upgrade), bootstrap, installer, helpers
+- **In Progress**: Documentation, agent context files
+- **Planned**: `02-packages.sh`, `03-hyprland.sh`, `04-vicinae.sh`, `05-waybar.sh`, `06-cli-tools.sh`
 
 ## Environment / Requirements
-- {{REQ_1}}
-- {{REQ_2}}
-- {{REQ_3}}
+- Fedora Linux (current release)
+- Bash 4+
+- git
+- sudo access
 
 ## Common Tasks
 | Task | Command |
 |------|---------|
-| {{TASK_1}} | `{{TASK_1_CMD}}` |
-| {{TASK_2}} | `{{TASK_2_CMD}}` |
-| {{TASK_3}} | `{{TASK_3_CMD}}` |
+| Run installer | `bash boot.sh` |
+| Lint all scripts | `shellcheck install/**/*.sh lib/*.sh boot.sh install.sh` |
+| Add new module | Create `install/core/NN-name.sh`, use helpers for logging |
 
 ## Gotchas / Tribal Knowledge
-- {{GOTCHA_1}}
-- {{GOTCHA_2}}
+- `boot.sh` clones to `~/.local/share/fm-fedora` by default (override via `FM_FEDORA_HOME`)
+- RPM Fusion URLs use `$(rpm -E %fedora)` — version-agnostic
+- Hyprland is not in Fedora repos — needs COPR: `solopasha/hyprland`
+- Vicinae is not in Fedora repos — build from source or COPR
+- Modules are sourced (not executed) — variables/functions leak between modules
