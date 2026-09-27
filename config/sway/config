@@ -12,7 +12,7 @@ input type:touchpad {
 }
 
 # ── Output ──
-output * bg solid_color #000000 stretch
+
 
 # ── Layout ──
 default_border pixel 2
@@ -126,7 +126,7 @@ exec_always swayidle -w \
 
 exec_always /usr/libexec/polkit-gnome-authentication-agent-1
 exec_always dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
-exec_always swaybg -c 000000
+exec_always swaybg -c #000000
 
 # ── Window Rules ──
 for_window [app_id="pavucontrol"] floating enable, move position center
