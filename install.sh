@@ -8,9 +8,11 @@ source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 print_banner
 
-# Install fm CLI to PATH
+# Install fm CLI and helpers to PATH
 mkdir -p "$HOME/.local/bin"
-ln -sf "$FM_FEDORA_PATH/bin/fm" "$HOME/.local/bin/fm"
+for f in "$FM_FEDORA_PATH"/bin/*; do
+    ln -sf "$f" "$HOME/.local/bin/$(basename "$f")"
+done
 
 # Ensure ~/.local/bin in PATH
 for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do

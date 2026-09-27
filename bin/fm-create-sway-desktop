@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DESKTOP_FILE="/usr/share/wayland-sessions/sway.desktop"
+
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/helpers.sh"
+
+main() {
+    info "Creating sway.desktop for GDM..."
+
+    if [[ -f "$DESKTOP_FILE" ]]; then
+        info "sway.desktop already exists, skipping"
+        success "Already present: $DESKTOP_FILE"
+        return 0
+    fi
+
+    if sudo tee "$DESKTOP_FILE" >/dev/null <<'EOF'; then
+[Desktop Entry]
+Name=Sway
+Comment=An i3-compatible Wayland compositor
+Exec=sway
+Type=Application
+DesktopNames=Sway
+EOF
+        success "Created: $DESKTOP_FILE"
+        info "Restart GDM to see it in login screen: sudo systemctl restart gdm"
+    else
+        error "Failed to create sway.desktop (sudo permission issue?)"
+        error "Try manually: sudo tee $DESKTOP_FILE <<'EOF' ... EOF"
+        return 1
+    fi
+}
+
+main "$@"
