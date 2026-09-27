@@ -12,7 +12,7 @@ input type:touchpad {
 }
 
 # ── Output ──
-output * bg solid_color #000000
+output * bg solid_color #000000 stretch
 
 # ── Layout ──
 default_border pixel 2
