@@ -11,8 +11,8 @@ sudo dnf install -y waybar
 
 # 2. Write configs from templates
 CONFIG_DIR="$FM_FEDORA_PATH/config/waybar"
-write_config_if_missing "$HOME/.config/waybar/config.jsonc" "$(cat "$CONFIG_DIR/config.jsonc")"
-write_config_if_missing "$HOME/.config/waybar/style.css" "$(cat "$CONFIG_DIR/style.css")"
+write_config_ensure "$HOME/.config/waybar/config.jsonc" "$(cat "$CONFIG_DIR/config.jsonc")"
+write_config_ensure "$HOME/.config/waybar/style.css" "$(cat "$CONFIG_DIR/style.css")"
 
 # 3. Verify
 verify_waybar_install() {
