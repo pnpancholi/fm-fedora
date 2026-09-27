@@ -1,32 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol
+# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing swayfx core packages..."
 
-# 1. Enable swayfx COPR (official)
-enable_copr "swayfx/swayfx"
-
-# 2. Install packages (swayfx replaces sway)
-sudo dnf install -y swayfx swaybg swayidle swaylock swayimg slurp grim \
-    xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol
-
-info "Enabling xdg-desktop-portal-wlr..."
-systemctl --user enable --now xdg-desktop-portal-wlr
-
-# Ensure sway.desktop exists for GDM (attempt non-interactive, fallback to helper)
+# 1. Ensure sway.desktop exists for GDM (create before package install)
 if [[ ! -f /usr/share/wayland-sessions/sway.desktop ]]; then
     info "Creating sway.desktop for GDM..."
     if sudo -n tee /usr/share/wayland-sessions/sway.desktop >/dev/null <<'EOF'; then
 [Desktop Entry]
 Name=Sway
 Comment=An i3-compatible Wayland compositor
+TryExec=sway
 Exec=sway
 Type=Application
 DesktopNames=Sway
 EOF
+        sudo -n restorecon /usr/share/wayland-sessions/sway.desktop 2>/dev/null || true
         success "Created sway.desktop for GDM"
     else
         warn "Could not create sway.desktop non-interactively"
@@ -34,12 +26,22 @@ EOF
     fi
 fi
 
+# 2. Enable swayfx COPR (official)
+enable_copr "swayfx/swayfx"
+
+# 3. Install packages (swayfx replaces sway)
+sudo dnf install -y --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
+    xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
+
+info "Enabling xdg-desktop-portal-wlr..."
+systemctl --user enable --now xdg-desktop-portal-wlr
+
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
-# 3. Write main sway config
+# 4. Write main sway config
 write_config_if_missing "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
 
-# 4. Environment.d for systemd/user services
+# 5. Environment.d for systemd/user services
 mkdir -p "$HOME/.config/environment.d"
 
 # Universal Wayland env vars (all GPUs)
@@ -52,7 +54,7 @@ CLUTTER_BACKEND=wayland
 GBM_BACKEND=nvidia-drm
 "
 
-# 5. NVIDIA-specific env vars (only if NVIDIA GPU detected)
+# 6. NVIDIA-specific env vars (only if NVIDIA GPU detected)
 if lspci | grep -qi nvidia; then
     info "NVIDIA GPU detected, adding NVIDIA env vars..."
     cat >> "$HOME/.config/environment.d/sway.conf" <<'EOF'
@@ -67,7 +69,7 @@ __GL_VRR_ALLOWED=0
 EOF
 fi
 
-# 6. Create wallpapers directory (for future wallpaper URL)
+# 7. Create wallpapers directory (for future wallpaper URL)
 mkdir -p "$HOME/Pictures/wallpapers"
 
 # Verification
@@ -78,26 +80,35 @@ verify_swayfx_install() {
 
     # 1. Check packages installed
     for pkg in swayfx swaybg swayidle swaylock swayimg slurp grim \
-               xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol; do
+               xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
             failed=1
         fi
     done
 
-    # 2. Check config exists
+    # 2. Check sway.desktop exists and has content
+    if [[ ! -f /usr/share/wayland-sessions/sway.desktop ]]; then
+        warn "sway.desktop missing (GDM won't show Sway)"
+        failed=1
+    elif [[ ! -s /usr/share/wayland-sessions/sway.desktop ]]; then
+        warn "sway.desktop is empty"
+        failed=1
+    fi
+
+    # 3. Check config exists
     if [[ ! -f "$HOME/.config/sway/config" ]]; then
         warn "Config missing: $HOME/.config/sway/config"
         failed=1
     fi
 
-    # 3. Check portal service
+    # 4. Check portal service
     if ! systemctl --user is-enabled xdg-desktop-portal-wlr >/dev/null 2>&1; then
         warn "xdg-desktop-portal-wlr not enabled"
         failed=1
     fi
 
-    # 4. Syntax check sway config (swayfx provides sway binary)
+    # 5. Syntax check sway config (swayfx provides sway binary)
     if command -v sway >/dev/null 2>&1; then
         if ! sway -c "$HOME/.config/sway/config" -C >/dev/null 2>&1; then
             warn "sway config syntax check failed"

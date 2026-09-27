@@ -18,10 +18,12 @@ main() {
 [Desktop Entry]
 Name=Sway
 Comment=An i3-compatible Wayland compositor
+TryExec=sway
 Exec=sway
 Type=Application
 DesktopNames=Sway
 EOF
+        sudo restorecon "$DESKTOP_FILE" 2>/dev/null || true
         success "Created: $DESKTOP_FILE"
         info "Restart GDM to see it in login screen: sudo systemctl restart gdm"
     else
