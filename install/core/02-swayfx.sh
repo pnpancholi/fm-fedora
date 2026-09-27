@@ -16,6 +16,19 @@ sudo dnf install -y swayfx swaybg swayidle swaylock swayimg slurp grim \
 info "Enabling xdg-desktop-portal-wlr..."
 systemctl --user enable --now xdg-desktop-portal-wlr
 
+# Ensure sway.desktop exists for GDM (create if swayfx package didn't provide it)
+if [[ ! -f /usr/share/wayland-sessions/sway.desktop ]]; then
+    info "Creating sway.desktop for GDM..."
+    sudo tee /usr/share/wayland-sessions/sway.desktop >/dev/null <<'EOF'
+[Desktop Entry]
+Name=Sway
+Comment=An i3-compatible Wayland compositor
+Exec=sway
+Type=Application
+DesktopNames=Sway
+EOF
+fi
+
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
 # 3. Write main sway config
