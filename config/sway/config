@@ -29,30 +29,31 @@ client.unfocused        #1e1e1e      #1e1e1e      #888888      #1e1e1e      #1e1
 client.urgent           #ffcc00      #ffcc00      #1e1e1e      #ffcc00      #ffcc00
 
 # ── swayfx window effects ──
-window {
-    # Animations (ms)
-    animation_duration_ms 150
-
-    # Rounded corners
-    corner_radius 8
-
-    # Blur (floating windows, backgrounds)
-    blur enable
-    blur_xray true
-    blur_passes 2
-    blur_radius 3
-
-    # Shadows
-    shadows enable
-    shadows_on_csd enable
-    shadow_blur_radius 12
-    shadow_color #00000088
-
-    # Dim unfocused windows
-    default_dim_inactive 0.3
-    dim_inactive_colors.unfocused #000000FF
-}
-
+#
+# window {
+#     # Animations (ms)
+#     animation_duration_ms 150
+#
+#     # Rounded corners
+#     corner_radius 8
+#
+#     # Blur (floating windows, backgrounds)
+#     blur enable
+#     blur_xray true
+#     blur_passes 2
+#     blur_radius 3
+#
+#     # Shadows
+#     shadows enable
+#     shadows_on_csd enable
+#     shadow_blur_radius 12
+#     shadow_color #00000088
+#
+#     # Dim unfocused windows
+#     default_dim_inactive 0.3
+#     dim_inactive_colors.unfocused #000000FF
+# }
+#
 # ── Mod key (Super/Windows/Command) ──
 set $mod Mod4
 
