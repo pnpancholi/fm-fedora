@@ -4,9 +4,9 @@
 
 ## Stack
 - **OS:** Fedora Linux (current stable)
-- **Compositor:** Hyprland (Wayland, via COPR `solopasha/hyprland`)
+- **Compositor:** Sway (Wayland, i3-compatible, official Fedora repos)
 - **Terminal:** Vicinae (Wayland-native, GPU-accelerated, via COPR or source)
-- **Bar:** Waybar (status bar, IPC with Hyprland)
+- **Bar:** Waybar (status bar, IPC with Sway)
 - **Language:** Bash 4+ modules, zero external deps
 
 ## Structure
@@ -26,7 +26,7 @@ lib/helpers.sh — logging + banner
 | Topic | Decision |
 |-------|----------|
 | Distro | Fedora — cutting-edge, Wayland-first, strong upstream |
-| Compositor | Hyprland — dynamic tiling, GPU-accelerated, native Wayland |
+| Compositor | Sway — i3-compatible, stable, Fedora repos, universal GPU |
 | Terminal | Vicinae — native Wayland, TOML config, daemon mode |
 | Language | Bash — zero deps, transparent, forkable |
 

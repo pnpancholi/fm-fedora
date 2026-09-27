@@ -5,11 +5,11 @@
     "layer": "top",
     "position": "top",
     "height": 32,
-    "modules-left": ["hyprland/workspaces"],
+    "modules-left": ["sway/workspaces"],
     "modules-center": ["clock"],
     "modules-right": ["memory", "cpu", "network", "bluetooth", "pulseaudio", "battery", "tray"],
 
-    "hyprland/workspaces": {
+    "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
         "format": "{icon}",
