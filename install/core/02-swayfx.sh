@@ -6,22 +6,21 @@ source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing swayfx core packages..."
 
-# 1. Ensure sway.desktop exists for GDM (create before package install)
-if [[ ! -f /usr/share/wayland-sessions/sway.desktop ]]; then
-    info "Creating sway.desktop for GDM..."
-    if sudo -n tee /usr/share/wayland-sessions/sway.desktop >/dev/null <<'EOF'; then
+# 1. Ensure swayfx.desktop exists for GDM (create before package install)
+if [[ ! -f /usr/share/wayland-sessions/swayfx.desktop ]]; then
+    info "Creating swayfx.desktop for GDM..."
+    if sudo -n tee /usr/share/wayland-sessions/swayfx.desktop >/dev/null <<'EOF'; then
 [Desktop Entry]
-Name=Sway
-Comment=An i3-compatible Wayland compositor
-TryExec=sway
+Name=SwayFX
+Comment=An i3-compatible Wayland compositor with effects
 Exec=sway
 Type=Application
-DesktopNames=Sway
+DesktopNames=SwayFX
 EOF
-        sudo -n restorecon /usr/share/wayland-sessions/sway.desktop 2>/dev/null || true
-        success "Created sway.desktop for GDM"
+        sudo -n restorecon /usr/share/wayland-sessions/swayfx.desktop 2>/dev/null || true
+        success "Created swayfx.desktop for GDM"
     else
-        warn "Could not create sway.desktop non-interactively"
+        warn "Could not create swayfx.desktop non-interactively"
         warn "Run after install: fm-create-sway-desktop"
     fi
 fi
@@ -30,7 +29,7 @@ fi
 enable_copr "swayfx/swayfx"
 
 # 3. Install packages (swayfx replaces sway)
-sudo dnf install -y --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
+sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
     xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
 
 info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
@@ -86,12 +85,12 @@ verify_swayfx_install() {
         fi
     done
 
-    # 2. Check sway.desktop exists and has content
-    if [[ ! -f /usr/share/wayland-sessions/sway.desktop ]]; then
-        warn "sway.desktop missing (GDM won't show Sway)"
+    # 2. Check swayfx.desktop exists and has content
+    if [[ ! -f /usr/share/wayland-sessions/swayfx.desktop ]]; then
+        warn "swayfx.desktop missing (GDM won't show SwayFX)"
         failed=1
-    elif [[ ! -s /usr/share/wayland-sessions/sway.desktop ]]; then
-        warn "sway.desktop is empty"
+    elif [[ ! -s /usr/share/wayland-sessions/swayfx.desktop ]]; then
+        warn "swayfx.desktop is empty"
         failed=1
     fi
 
