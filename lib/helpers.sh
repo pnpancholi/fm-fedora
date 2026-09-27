@@ -42,6 +42,50 @@ write_config_if_missing() {
   fi
 }
 
+write_config_ensure() {
+  local dest="$1"
+  local expected_content="$2"
+
+  if [[ ! -f "$dest" ]]; then
+    mkdir -p "$(dirname "$dest")"
+    printf "%s\n" "$expected_content" > "$dest"
+    info "Created config: $dest"
+    return
+  fi
+
+  local current_content
+  current_content="$(cat "$dest")"
+  if [[ "$current_content" != "$expected_content" ]]; then
+    info "Config differs from expected, overwriting: $dest"
+    mkdir -p "$(dirname "$dest")"
+    printf "%s\n" "$expected_content" > "$dest"
+  else
+    info "Config already matches: $dest"
+  fi
+}
+
+write_config_ensure() {
+  local dest="$1"
+  local expected_content="$2"
+
+  if [[ ! -f "$dest" ]]; then
+    mkdir -p "$(dirname "$dest")"
+    printf "%s\n" "$expected_content" > "$dest"
+    info "Created config: $dest"
+    return
+  fi
+
+  local current_content
+  current_content="$(cat "$dest")"
+  if [[ "$current_content" != "$expected_content" ]]; then
+    info "Config differs from expected, overwriting: $dest"
+    mkdir -p "$(dirname "$dest")"
+    printf "%s\n" "$expected_content" > "$dest"
+  else
+    info "Config already matches: $dest"
+  fi
+}
+
 enable_copr() {
   local copr_name="$1"
   if ! dnf copr list | grep -q "^$copr_name "; then

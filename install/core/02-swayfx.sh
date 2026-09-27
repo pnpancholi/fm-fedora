@@ -38,7 +38,7 @@ info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
 # 4. Write main sway config
-write_config_if_missing "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
+write_config_ensure "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
 
 # 5. Environment.d for systemd/user services
 mkdir -p "$HOME/.config/environment.d"
