@@ -30,6 +30,25 @@ client.focused_inactive #1e1e1e      #1e1e1e      #888888      #1e1e1e      #1e1
 client.unfocused        #1e1e1e      #1e1e1e      #888888      #1e1e1e      #1e1e1e
 client.urgent           #ffcc00      #ffcc00      #1e1e1e      #ffcc00      #ffcc00
 
+# ── swayfx window effects ──
+window {
+    # Animations (ms)
+    fade_in_duration 150
+    fade_out_duration 150
+    move_animation_duration 150
+
+    # Blur (floating windows, backgrounds)
+    blur_xray true
+    blur_optimization true
+
+    # Visual
+    shadow true
+    shadow_color #00000088
+    shadow_range 10
+    round true
+    border_radius 8
+}
+
 # ── Mod key (Super/Windows/Command) ──
 set $mod Mod4
 

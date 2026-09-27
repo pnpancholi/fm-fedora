@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: sway swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol
+# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
-info "Installing Sway core packages..."
+info "Installing swayfx core packages..."
 
-# 1. Install packages from official Fedora repos (no COPR needed)
-sudo dnf install -y sway swaybg swayidle swaylock swayimg slurp grim \
+# 1. Enable swayfx COPR (official)
+enable_copr "swayfx/swayfx"
+
+# 2. Install packages (swayfx replaces sway)
+sudo dnf install -y swayfx swaybg swayidle swaylock swayimg slurp grim \
     xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol
 
 info "Enabling xdg-desktop-portal-wlr..."
@@ -15,10 +18,10 @@ systemctl --user enable --now xdg-desktop-portal-wlr
 
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
-# 2. Write main sway config
+# 3. Write main sway config
 write_config_if_missing "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
 
-# 3. Environment.d for systemd/user services
+# 4. Environment.d for systemd/user services
 mkdir -p "$HOME/.config/environment.d"
 
 # Universal Wayland env vars (all GPUs)
@@ -31,7 +34,7 @@ CLUTTER_BACKEND=wayland
 GBM_BACKEND=nvidia-drm
 "
 
-# 4. NVIDIA-specific env vars (only if NVIDIA GPU detected)
+# 5. NVIDIA-specific env vars (only if NVIDIA GPU detected)
 if lspci | grep -qi nvidia; then
     info "NVIDIA GPU detected, adding NVIDIA env vars..."
     cat >> "$HOME/.config/environment.d/sway.conf" <<'EOF'
@@ -46,17 +49,17 @@ __GL_VRR_ALLOWED=0
 EOF
 fi
 
-# 5. Create wallpapers directory (for future wallpaper URL)
+# 6. Create wallpapers directory (for future wallpaper URL)
 mkdir -p "$HOME/Pictures/wallpapers"
 
 # Verification
-verify_sway_install() {
-    info "Verifying Sway installation..."
+verify_swayfx_install() {
+    info "Verifying swayfx installation..."
 
     local failed=0
 
     # 1. Check packages installed
-    for pkg in sway swaybg swayidle swaylock swayimg slurp grim \
+    for pkg in swayfx swaybg swayidle swaylock swayimg slurp grim \
                xdg-desktop-portal-wlr polkit-gnome brightnessctl playerctl pavucontrol; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
@@ -76,7 +79,7 @@ verify_sway_install() {
         failed=1
     fi
 
-    # 4. Syntax check sway config
+    # 4. Syntax check sway config (swayfx provides sway binary)
     if command -v sway >/dev/null 2>&1; then
         if ! sway -c "$HOME/.config/sway/config" -C >/dev/null 2>&1; then
             warn "sway config syntax check failed"
@@ -85,7 +88,7 @@ verify_sway_install() {
     fi
 
     if [[ $failed -eq 0 ]]; then
-        success "Sway core installation verified."
+        success "swayfx core installation verified."
         info "Next: run 'sway' from a TTY to test (Ctrl+Alt+F3, login, type 'sway')"
     else
         error "Verification failed. Check warnings above."
@@ -93,6 +96,6 @@ verify_sway_install() {
     fi
 }
 
-verify_sway_install
+verify_swayfx_install
 
-success "Sway core configured."
+success "swayfx core configured."

@@ -24,10 +24,11 @@ info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$
 # Core modules
 for script in \
     "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
-    "$FM_FEDORA_PATH"/install/core/02-hyprland.sh \
-    "$FM_FEDORA_PATH"/install/core/03-waybar.sh; do
-  info "-- $(basename "$script")"
-  source "$script"
+    "$FM_FEDORA_PATH"/install/core/02-swayfx.sh \
+    "$FM_FEDORA_PATH"/install/core/03-waybar.sh \
+    "$FM_FEDORA_PATH"/install/core/04-ghostty.sh; do
+    info "-- $(basename "$script")"
+    source "$script"
 done
 
 success "Core setup complete."
