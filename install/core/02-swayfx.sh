@@ -33,8 +33,7 @@ enable_copr "swayfx/swayfx"
 sudo dnf install -y --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
     xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
 
-info "Enabling xdg-desktop-portal-wlr..."
-systemctl --user enable --now xdg-desktop-portal-wlr
+info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
 
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
@@ -102,13 +101,7 @@ verify_swayfx_install() {
         failed=1
     fi
 
-    # 4. Check portal service
-    if ! systemctl --user is-enabled xdg-desktop-portal-wlr >/dev/null 2>&1; then
-        warn "xdg-desktop-portal-wlr not enabled"
-        failed=1
-    fi
-
-    # 5. Syntax check sway config (swayfx provides sway binary)
+    # 4. Syntax check sway config (swayfx provides sway binary)
     if command -v sway >/dev/null 2>&1; then
         if ! sway -c "$HOME/.config/sway/config" -C >/dev/null 2>&1; then
             warn "sway config syntax check failed"
