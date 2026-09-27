@@ -12,6 +12,7 @@
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
+        "persistent-workspaces": false,
         "format": "{icon}",
         "format-icons": {
             "active": "●",
@@ -21,9 +22,8 @@
     },
 
     "clock": {
-        "format": "%H:%M",
-        "format-alt": "%Y-%m-%d",
-        "tooltip-format": "%A, %B %d"
+        "format": "%B %d, %Y - %H:%M",
+        "tooltip-format": "%A, %B %d, %Y"
     },
 
     "network": {
