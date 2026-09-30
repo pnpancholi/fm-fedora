@@ -67,8 +67,16 @@ __GL_VRR_ALLOWED=0
 EOF
 fi
 
-# 7. Create wallpapers directory (for future wallpaper URL)
+# 7. Create wallpapers directory
 mkdir -p "$HOME/Pictures/wallpapers"
+
+# 8. Copy default wallpaper
+WALLPAPER_SRC="$FM_FEDORA_PATH/assets/default-wallpaper.jpg"
+WALLPAPER_DEST="$HOME/Pictures/wallpapers/default-wallpaper.jpg"
+if [[ -f "$WALLPAPER_SRC" && ! -f "$WALLPAPER_DEST" ]]; then
+    cp "$WALLPAPER_SRC" "$WALLPAPER_DEST"
+    info "Installed default wallpaper"
+fi
 
 # Verification
 verify_swayfx_install() {

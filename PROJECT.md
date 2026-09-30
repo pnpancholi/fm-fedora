@@ -4,20 +4,24 @@
 
 ## Stack
 - **OS:** Fedora Linux (current stable)
-- **Compositor:** Sway (Wayland, i3-compatible, official Fedora repos)
-- **Terminal:** Vicinae (Wayland-native, GPU-accelerated, via COPR or source)
-- **Bar:** Waybar (status bar, IPC with Sway)
+- **Compositor:** SwayFX (Sway fork with effects, i3-compatible, via COPR swayfx/swayfx)
+- **Terminal:** Ghostty (GPU-accelerated, via COPR scottames/ghostty)
+- **Bar:** Waybar (status bar, IPC with Sway, Fedora repos)
 - **Language:** Bash 4+ modules, zero external deps
 
 ## Structure
 ```
-boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-*, 03-hyprland.sh, 04-vicinae.sh...
+boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-swayfx.sh, 03-waybar.sh, 04-ghostty.sh...
 lib/helpers.sh — logging + banner
+lib/fm-core.sh — shared functions
 ```
 
 ## Current State
 - `01-dnf-setup.sh`: DNF tuning, RPM Fusion, system upgrade
-- **Planned:** `02-packages.sh`, `03-hyprland.sh`, `04-vicinae.sh`, `05-waybar.sh`, `06-cli-tools.sh`
+- `02-swayfx.sh`: SwayFX compositor, config, wallpaper, NVIDIA auto-detect
+- `03-waybar.sh`: Waybar + config/style
+- `04-ghostty.sh`: Ghostty terminal + config
+- **Planned:** `05-packages.sh` (CLI/dev tools), `06-vicinae.sh` (optional alt terminal)
 
 ## Philosophy
 **Speed** • **Mesmerizing** • **Strong Opinionated Defaults, Extensible Boundaries**
@@ -26,8 +30,8 @@ lib/helpers.sh — logging + banner
 | Topic | Decision |
 |-------|----------|
 | Distro | Fedora — cutting-edge, Wayland-first, strong upstream |
-| Compositor | Sway — i3-compatible, stable, Fedora repos, universal GPU |
-| Terminal | Vicinae — native Wayland, TOML config, daemon mode |
+| Compositor | SwayFX — i3-compatible, effects built-in, COPR swayfx/swayfx, universal GPU |
+| Terminal | Ghostty — GPU-accelerated, COPR scottames/ghostty, modern defaults |
 | Language | Bash — zero deps, transparent, forkable |
 
 ## Extension Points
