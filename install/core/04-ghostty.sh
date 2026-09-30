@@ -14,7 +14,7 @@ sudo dnf install -y ghostty
 
 # 3. Write config from template
 CONFIG_DIR="$FM_FEDORA_PATH/config/ghostty"
-write_config_if_missing "$HOME/.config/ghostty/config" "$(cat "$CONFIG_DIR/config")"
+write_config_ensure "$HOME/.config/ghostty/config" "$(cat "$CONFIG_DIR/config")"
 
 # 4. Verify
 verify_ghostty_install() {

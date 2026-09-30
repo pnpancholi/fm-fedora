@@ -57,6 +57,9 @@ client.urgent           #ffcc00      #ffcc00      #1e1e1e      #ffcc00      #ffc
 # ── Mod key (Super/Windows/Command) ──
 set $mod Mod4
 
+# ── Terminal ──
+bindsym $mod+Return exec ghostty
+
 # ── Window Management ──
 bindsym $mod+Q kill
 bindsym $mod+Shift+E exec swaynag -t warning -m 'Exit sway?' -B 'Yes' 'swaymsg exit'
