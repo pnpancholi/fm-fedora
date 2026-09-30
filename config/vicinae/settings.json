@@ -1,0 +1,33 @@
+{
+  "imports": [],
+
+  // Window (match Ghostty)
+  "window": {
+    "decorations": false,
+    "padding_x": 8,
+    "padding_y": 8,
+    "opacity": 0.9,
+    "blur": true
+  },
+
+  // Font (match Ghostty: JetBrains Mono 11)
+  "font": {
+    "normal": { "family": "JetBrains Mono", "size": 11 }
+  },
+
+  // Theme (built-in tokyo-night)
+  "theme": {
+    "dark": { "name": "tokyo-night" },
+    "light": { "name": "tokyo-night-light" }
+  },
+
+  // Performance
+  "renderer": "auto",
+  "vsync": true,
+
+  // Daemon for fast startup
+  "server": {
+    "enabled": true,
+    "auto_start": true
+  }
+}

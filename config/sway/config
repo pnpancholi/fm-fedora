@@ -59,6 +59,7 @@ set $mod Mod4
 
 # ── Terminal ──
 bindsym $mod+Return exec ghostty
+bindsym $mod+Space exec vicinae
 
 # ── Window Management ──
 bindsym $mod+Q kill
