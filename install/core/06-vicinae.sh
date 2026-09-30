@@ -12,11 +12,16 @@ enable_copr "scottames/vicinae"
 # 2. Install package
 sudo dnf install -y vicinae
 
-# 3. Write config from template
+# 3. Enable systemd user service (works in SSH and GUI)
+info "Enabling vicinae systemd user service..."
+systemctl --user enable vicinae.service
+systemctl --user start vicinae.service 2>/dev/null || true
+
+# 4. Write config from template
 CONFIG_DIR="$FM_FEDORA_PATH/config/vicinae"
 write_config_ensure "$HOME/.config/vicinae/settings.json" "$(cat "$CONFIG_DIR/settings.json")"
 
-# 4. Verify
+# 5. Verify
 verify_vicinae_install() {
     info "Verifying vicinae installation..."
     local failed=0
@@ -30,6 +35,10 @@ verify_vicinae_install() {
     fi
     if ! vicinae version >/dev/null 2>&1; then
         warn "vicinae binary not working"
+        failed=1
+    fi
+    if ! systemctl --user is-enabled --quiet vicinae.service; then
+        warn "vicinae service not enabled"
         failed=1
     fi
     if [[ $failed -eq 0 ]]; then
