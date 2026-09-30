@@ -28,7 +28,7 @@ verify_vicinae_install() {
         warn "Config missing"
         failed=1
     fi
-    if ! vicinae --version >/dev/null 2>&1; then
+    if ! vicinae version >/dev/null 2>&1; then
         warn "vicinae binary not working"
         failed=1
     fi
