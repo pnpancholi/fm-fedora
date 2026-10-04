@@ -21,6 +21,16 @@ fm_upgrade() {
         error "Not a git repo: $FM_FEDORA_PATH"
         exit 1
     fi
+
+    # sudo keepalive (same as boot.sh) so module sudo commands don't fail on TTY
+    if ! sudo -v; then
+        error "sudo authentication failed"
+        exit 1
+    fi
+    ( while true; do sudo -v; sleep 60; done ) &
+    local sudo_keepalive_pid=$!
+    trap 'kill "$sudo_keepalive_pid" 2>/dev/null' EXIT
+
     git -C "$FM_FEDORA_PATH" pull --quiet
     source "$FM_FEDORA_PATH/install.sh"
     success "Upgrade complete."

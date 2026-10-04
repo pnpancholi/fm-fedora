@@ -56,7 +56,6 @@ if [[ -z "$THEME_PRIMARY" ]]; then
 fi
 
 # 4. Write main sway config with theme substitution
-local sway_config_content
 sway_config_content="$(cat "$CONFIG_DIR/config")"
 sway_config_content="${sway_config_content//@THEME_PRIMARY@/$THEME_PRIMARY}"
 write_config_ensure "$HOME/.config/sway/config" "$sway_config_content"
