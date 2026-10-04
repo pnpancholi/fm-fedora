@@ -38,6 +38,14 @@ sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swa
 
 info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
 
+# 3b. Verify swayfx actually replaced sway
+if ! sway -v 2>&1 | grep -qi swayfx; then
+    error "swayfx installation failed: 'sway' binary is not swayfx"
+    error "Check COPR enable and dnf install output above"
+    return 1
+fi
+success "swayfx confirmed as active compositor"
+
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
 # Read theme primary color from theme.conf
@@ -131,10 +139,16 @@ verify_swayfx_install() {
 
     # 4. Syntax check sway config (swayfx provides sway binary)
     if command -v sway >/dev/null 2>&1; then
-        if ! sway -c "$HOME/.config/sway/config" -C >/dev/null 2>&1; then
+        if ! sway -v 2>&1 | grep -qi swayfx; then
+            warn "sway binary is not swayfx (vanilla sway detected)"
+            failed=1
+        elif ! sway -c "$HOME/.config/sway/config" -C >/dev/null 2>&1; then
             warn "sway config syntax check failed"
             failed=1
         fi
+    else
+        warn "sway binary not found"
+        failed=1
     fi
 
     if [[ $failed -eq 0 ]]; then
