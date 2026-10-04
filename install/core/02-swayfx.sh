@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol wl-clipboard [spice-vdagent xclip in VMs]
+# PKG: swayfx swaybg swayidle swaylock-effects swayimg slurp grim xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol wl-clipboard [spice-vdagent xclip in VMs]
+# COPR: swayfx/swayfx, pheeef/swaylock-effects
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing swayfx core packages..."
@@ -33,10 +34,14 @@ CLIP_PKGS=(wl-clipboard)
 if systemd-detect-virt --quiet 2>/dev/null; then
     CLIP_PKGS+=(spice-vdagent xclip)
 fi
-sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
+sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swayimg slurp grim \
     xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
 info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
+
+# 3a. Install swaylock-effects (wallpaper blur lock screen, replaces swaylock)
+enable_copr "pheeef/swaylock-effects"
+sudo dnf install -y --allowerasing --skip-unavailable swaylock-effects
 
 # 3b. Verify swayfx actually replaced sway
 if ! sway -v 2>&1 | grep -qi swayfx; then
@@ -63,7 +68,27 @@ write_config_ensure "$HOME/.config/sway/config" "$sway_config_content"
 # 5. Copy theme.conf for user reference/editing
 write_config_ensure "$HOME/.config/sway/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
 
-# 5. Environment.d for systemd/user services
+# 6. swaylock-effects config: wallpaper + blur, clock, username, ringless input field
+write_config_ensure "$HOME/.config/swaylock/config" "image=$HOME/Pictures/wallpapers/nordic-wp.png
+scaling=fill
+effect-blur=7x5
+clock
+timestr=%H:%M
+datestr=$USER
+text-color=ffffff
+indicator
+indicator-radius=60
+indicator-thickness=4
+ring-color=00000000
+inside-color=00000088
+line-color=00000000
+key-hl-color=${THEME_PRIMARY#\#}
+text-clear=
+text-ver=Verifying...
+text-wrong=Wrong
+"
+
+# 7. Environment.d for systemd/user services
 mkdir -p "$HOME/.config/environment.d"
 
 # Universal Wayland env vars (all GPUs)
@@ -76,7 +101,7 @@ CLUTTER_BACKEND=wayland
 GBM_BACKEND=nvidia-drm
 "
 
-# 6. NVIDIA-specific env vars (only if NVIDIA GPU detected)
+# 8. NVIDIA-specific env vars (only if NVIDIA GPU detected)
 if lspci | grep -qi nvidia; then
     info "NVIDIA GPU detected, adding NVIDIA env vars..."
     cat >> "$HOME/.config/environment.d/sway.conf" <<'EOF'
@@ -91,10 +116,10 @@ __GL_VRR_ALLOWED=0
 EOF
 fi
 
-# 7. Create wallpapers directory
+# 9. Create wallpapers directory
 mkdir -p "$HOME/Pictures/wallpapers"
 
-# 8. Copy default wallpaper
+# 10. Copy default wallpaper
 WALLPAPER_SRC="$FM_FEDORA_PATH/assets/nordic-wp.png"
 WALLPAPER_DEST="$HOME/Pictures/wallpapers/nordic-wp.png"
 if [[ -f "$WALLPAPER_SRC" && ! -f "$WALLPAPER_DEST" ]]; then
@@ -109,7 +134,7 @@ verify_swayfx_install() {
     local failed=0
 
     # 1. Check packages installed
-    for pkg in swayfx swaybg swayidle swaylock swayimg slurp grim \
+    for pkg in swayfx swaybg swayidle swaylock-effects swayimg slurp grim \
                xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol wl-clipboard; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"

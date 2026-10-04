@@ -21,7 +21,7 @@ Each record follows: **Context → Decision → Consequences**
 - ✅ Stable, mature codebase with long-term support
 - ⚠️ No dynamic tiling (dwindle/master) — manual layout only
 - ⚠️ No built-in animations/blur — requires external tools if desired
-- ⚠️ Separate tools needed: swaybg, swayidle, swaylock, swayimg, slurp, grim
+- ⚠️ Separate tools needed: swaybg, swayidle, swaylock-effects, swayimg, slurp, grim
 - 📦 Modules updated: `02-hyprland.sh` → `02-sway.sh`, `config/hypr/` → `config/sway/`
 - 🔧 Waybar module updated: `hyprland/workspaces` → `sway/workspaces`
 

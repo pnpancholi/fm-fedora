@@ -118,10 +118,10 @@ bindsym $mod+Shift+R restart
 
 # ── Autostart ──
 exec_always swayidle -w \
-    timeout 300 'swaylock -f -c 000000' \
+    timeout 300 'swaylock -f' \
     timeout 600 'swaymsg "output * dpms off"' \
     resume 'swaymsg "output * dpms on"' \
-    before-sleep 'swaylock -f -c 000000'
+    before-sleep 'swaylock -f'
 
 exec_always /usr/libexec/polkit-gnome-authentication-agent-1
 exec_always dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP

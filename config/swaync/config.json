@@ -87,7 +87,7 @@
     "buttons-grid#power": {
       "buttons-per-row": 3,
       "actions": [
-        { "label": "Lock", "command": "swaylock -f -c 000000" },
+        { "label": "Lock", "command": "swaylock -f" },
         { "label": "Suspend", "command": "systemctl suspend" },
         { "label": "Logout", "command": "swaymsg exit" },
         { "label": "Reboot", "command": "systemctl reboot" },

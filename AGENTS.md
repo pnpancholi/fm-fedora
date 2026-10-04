@@ -79,6 +79,7 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - `boot.sh` clones to `~/.local/share/fm-fedora` by default (override via `FM_FEDORA_HOME`)
 - RPM Fusion URLs use `$(rpm -E %fedora)` — version-agnostic
 - SwayFX from COPR `swayfx/swayfx` (not vanilla Sway, not Hyprland)
+- swaylock-effects from COPR `pheeef/swaylock-effects` (replaces `swaylock`); config at `~/.config/swaylock/config` = wallpaper + blur, clock, username as datestr, ringless input field
 - Ghostty from COPR `scottames/ghostty`
 - Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules
