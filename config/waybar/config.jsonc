@@ -28,8 +28,8 @@
         "format": "%H:%M",
         "tooltip-format": "%A, %B %d, %Y",
         "format-alt": "%Y-%m-%d",
-        "on-click": "foot -e bash -c 'cal -3; read -n1'",
-        "on-click-right": "foot -e bash -c 'calcurse; read -n1'"
+        "on-click": "ghostty -e bash -c 'cal -3; read -n1'",
+        "on-click-right": "ghostty -e bash -c 'calcurse; read -n1'"
     },
 
     "mpris": {
@@ -49,13 +49,13 @@
     "memory": {
         "format": " {}%",
         "interval": 5,
-        "on-click": "foot -e btop"
+        "on-click": "ghostty -e btop"
     },
 
     "cpu": {
         "format": " {}%",
         "interval": 5,
-        "on-click": "foot -e btop"
+        "on-click": "ghostty -e btop"
     },
 
     "network": {
@@ -63,7 +63,7 @@
         "format-ethernet": "󰀂",
         "format-disconnected": "󰤮",
         "interval": 10,
-        "on-click": "foot -e nmtui",
+        "on-click": "ghostty -e nmtui",
         "on-click-right": "gnome-control-center wifi"
     },
 
@@ -96,7 +96,7 @@
             "warning": 20,
             "critical": 10
         },
-        "on-click": "foot -e bash -c 'upower -i /org/freedesktop/UPower/devices/battery_BAT0; read -n1'",
+        "on-click": "ghostty -e bash -c 'upower -i /org/freedesktop/UPower/devices/battery_BAT0; read -n1'",
         "on-click-right": "pavucontrol"
     },
 

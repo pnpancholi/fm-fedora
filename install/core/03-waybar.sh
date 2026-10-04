@@ -47,6 +47,17 @@ verify_waybar_install() {
         warn "waybar binary not working"
         failed=1
     fi
+
+    # 5. Validate config + CSS by running waybar briefly (catches parse errors like invalid properties)
+    info "Validating waybar config + CSS..."
+    local waybar_output
+    waybar_output=$(timeout 3 waybar 2>&1 || true)
+    if [[ -n "$waybar_output" ]] && grep -qiE "is not a valid property name|Failed to parse|Error loading" <<<"$waybar_output"; then
+        warn "waybar config/CSS validation failed:"
+        echo "$waybar_output" | head -5 | while IFS= read -r line; do warn "  $line"; done
+        failed=1
+    fi
+
     if [[ $failed -eq 0 ]]; then
         success "waybar verified."
     else

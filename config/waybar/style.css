@@ -73,9 +73,7 @@ window#waybar {
     border-left: 1px solid @border;
 }
 
-#mpris {
-    max-width: 250px;
-}
+
 
 /* Tray */
 #tray {
