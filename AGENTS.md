@@ -80,5 +80,6 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - RPM Fusion URLs use `$(rpm -E %fedora)` — version-agnostic
 - SwayFX from COPR `swayfx/swayfx` (not vanilla Sway, not Hyprland)
 - Ghostty from COPR `scottames/ghostty`
+- Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules
 - Wallpaper: `assets/default-wallpaper.jpg` copied to `~/Pictures/wallpapers/` by `02-swayfx.sh`

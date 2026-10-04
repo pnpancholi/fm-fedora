@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: waybar, jetbrains-mono-fonts, jetbrains-mono-nerd-fonts
+# PKG: waybar, jetbrains-mono-fonts, nerd-fonts
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing waybar..."
@@ -9,9 +9,10 @@ info "Installing waybar..."
 # 1. Install packages (official Fedora repos)
 sudo dnf install -y waybar jetbrains-mono-fonts
 
-# 2. Install Nerd Font for Waybar icons (COPR)
-enable_copr "che/jetbrains-mono-nerd-fonts"
-sudo dnf install -y jetbrains-mono-nerd-fonts
+# 2. Install Nerd Font for Waybar icons (COPR: che/nerd-fonts)
+sudo rm -f /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:che:jetbrains-mono-nerd-fonts.repo
+enable_copr "che/nerd-fonts"
+sudo dnf install -y nerd-fonts
 
 # 3. Write configs from templates
 CONFIG_DIR="$FM_FEDORA_PATH/config/waybar"
@@ -30,8 +31,8 @@ verify_waybar_install() {
         warn "Package missing: jetbrains-mono-fonts"
         failed=1
     fi
-    if ! rpm -q jetbrains-mono-nerd-fonts >/dev/null 2>&1; then
-        warn "Package missing: jetbrains-mono-nerd-fonts"
+    if ! rpm -q nerd-fonts >/dev/null 2>&1; then
+        warn "Package missing: nerd-fonts"
         failed=1
     fi
     if [[ ! -f "$HOME/.config/waybar/config.jsonc" ]]; then

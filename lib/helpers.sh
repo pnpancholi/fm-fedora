@@ -88,11 +88,12 @@ write_config_ensure() {
 
 enable_copr() {
   local copr_name="$1"
-  if ! dnf copr list | grep -q "^$copr_name "; then
+  local repo_file="/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:${copr_name//\//:}.repo"
+  if [[ -f "$repo_file" ]]; then
+    info "COPR already enabled: $copr_name"
+  else
     info "Enabling COPR: $copr_name"
     sudo dnf copr enable -y "$copr_name"
-  else
-    info "COPR already enabled: $copr_name"
   fi
 }
 
