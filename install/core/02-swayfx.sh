@@ -42,6 +42,7 @@ CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
 # 4. Write main sway config
 write_config_ensure "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
+write_config_ensure "$HOME/.config/sway/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
 
 # 5. Environment.d for systemd/user services
 mkdir -p "$HOME/.config/environment.d"
@@ -109,6 +110,10 @@ verify_swayfx_install() {
     # 3. Check config exists
     if [[ ! -f "$HOME/.config/sway/config" ]]; then
         warn "Config missing: $HOME/.config/sway/config"
+        failed=1
+    fi
+    if [[ ! -f "$HOME/.config/sway/theme.conf" ]]; then
+        warn "Theme config missing: $HOME/.config/sway/theme.conf"
         failed=1
     fi
 
