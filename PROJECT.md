@@ -11,7 +11,7 @@
 
 ## Structure
 ```
-boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-swayfx.sh, 03-waybar.sh, 04-ghostty.sh...
+boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-swayfx.sh, 03-waybar.sh, 04-ghostty.sh, 05-swaync.sh...
 lib/helpers.sh — logging + banner
 lib/fm-core.sh — shared functions
 ```
@@ -21,6 +21,7 @@ lib/fm-core.sh — shared functions
 - `02-swayfx.sh`: SwayFX compositor, config, wallpaper, NVIDIA auto-detect
 - `03-waybar.sh`: Waybar + config/style
 - `04-ghostty.sh`: Ghostty terminal + config
+- `05-swaync.sh`: SwayNC control center (DND, Wi-Fi, Bluetooth, power, battery mode)
 - **Planned:** `05-packages.sh` (CLI/dev tools), `06-vicinae.sh` (optional alt terminal)
 
 ## Philosophy

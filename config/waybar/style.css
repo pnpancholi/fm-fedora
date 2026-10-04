@@ -97,3 +97,16 @@ tooltip {
     border: 1px solid @border;
     border-radius: 4px;
 }
+
+/* Notification / control center */
+#custom-notification {
+    padding: 0 12px;
+    background: @bg-alt;
+    border-left: 1px solid @border;
+    color: @fg;
+}
+
+#custom-notification.dnd-none,
+#custom-notification.dnd-notification {
+    color: @yellow;
+}

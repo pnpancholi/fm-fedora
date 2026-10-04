@@ -18,7 +18,8 @@ fm-fedora/
 │       ├── 01-dnf-setup.sh # DNF tuning, RPM Fusion, system upgrade
 │       ├── 02-swayfx.sh    # SwayFX compositor, config, wallpaper, NVIDIA detect
 │       ├── 03-waybar.sh    # Waybar + config/style
-│       └── 04-ghostty.sh   # Ghostty terminal + config
+│       ├── 04-ghostty.sh   # Ghostty terminal + config
+│       └── 05-swaync.sh    # SwayNC control center
 ├── assets/
 │   ├── fm-fedora-banner.png
 │   └── default-wallpaper.jpg
@@ -26,7 +27,8 @@ fm-fedora/
 ├── config/
 │   ├── sway/config         # SwayFX config
 │   ├── waybar/             # Waybar config.jsonc + style.css
-│   └── ghostty/config      # Ghostty config
+│   ├── ghostty/config      # Ghostty config
+│   └── swaync/             # SwayNC config.json + style.css
 ├── AGENTS.md
 ├── PROJECT.md
 ├── DECISIONS.md
@@ -35,7 +37,7 @@ fm-fedora/
 
 ## Conventions
 - **Module naming**: `install/core/NN-name.sh` (zero-padded numeric prefix)
-- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`
+- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`
 - **Logging**: Use `info`, `success`, `warn`, `error` from `lib/helpers.sh`
 - **Privilege escalation**: No root execution; sudo only in modules, prompted once via `boot.sh` keepalive
 - **Shell target**: Bash 4+ (prefer POSIX where practical)
@@ -56,7 +58,7 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - **Bash modules** — Zero deps, linear execution, easy to fork/extend
 
 ## Current State
-- **Done**: `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`, bootstrap, installer, helpers, core lib
+- **Done**: `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, bootstrap, installer, helpers, core lib
 - **In Progress**: Documentation, agent context files
 - **Planned**: `05-packages.sh` (CLI/dev tools), `06-vicinae.sh` (optional alternative terminal)
 

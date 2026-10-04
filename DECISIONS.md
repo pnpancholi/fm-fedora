@@ -24,3 +24,19 @@ Each record follows: **Context → Decision → Consequences**
 - ⚠️ Separate tools needed: swaybg, swayidle, swaylock, swayimg, slurp, grim
 - 📦 Modules updated: `02-hyprland.sh` → `02-sway.sh`, `config/hypr/` → `config/sway/`
 - 🔧 Waybar module updated: `hyprland/workspaces` → `sway/workspaces`
+
+---
+
+## ADR-002: Control Center — SwayNC
+
+**Date:** 2026-10-04
+
+**Context:** Need quick toggles for DND, Wi-Fi, Bluetooth, power, and battery mode on SwayFX.
+
+**Decision:** Use SwayNotificationCenter (official Fedora package) with a Tokyo Night CSS theme, plus power-profiles-daemon for battery modes.
+
+**Consequences:**
+- ✅ Official Fedora repos, no COPR
+- ✅ GTK layer-shell panel built for Sway/wlroots
+- ✅ DND, Wi-Fi, Bluetooth, power menu, volume/backlight in one panel
+- ⚠️ Becomes the system notification daemon (popups enabled; DND governs them)

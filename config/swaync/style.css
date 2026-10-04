@@ -1,0 +1,169 @@
+/* SwayNC — Tokyo Night theme for fm-fedora */
+
+@define-color bg         #1a1b26;
+@define-color bg-alt     #24283b;
+@define-color fg         #c0caf5;
+@define-color fg-dim     #787c99;
+@define-color accent     #7aa2f7;
+@define-color accent-alt #bb9af7;
+@define-color green      #9ece6a;
+@define-color yellow     #e0af68;
+@define-color red        #f7768e;
+@define-color cyan       #7dcfff;
+@define-color border     #292e42;
+
+* {
+  font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", monospace;
+  font-size: 13px;
+}
+
+.control-center {
+  background: @bg;
+  border: 1px solid @border;
+  border-radius: 12px;
+  color: @fg;
+}
+
+.control-center-list {
+  background: transparent;
+}
+
+.control-center-list-placeholder {
+  color: @fg-dim;
+}
+
+.widget-title {
+  color: @fg;
+  margin: 8px;
+  font-size: 15px;
+}
+
+.widget-title > button {
+  background: @bg-alt;
+  color: @fg;
+  border: 1px solid @border;
+  border-radius: 8px;
+}
+
+.widget-title > button:hover {
+  background: @accent;
+  color: @bg;
+}
+
+.widget-dnd {
+  color: @fg;
+  margin: 8px;
+}
+
+.widget-dnd > switch {
+  background: @bg-alt;
+  border: 1px solid @border;
+  border-radius: 12px;
+}
+
+.widget-dnd > switch:checked {
+  background: @accent;
+}
+
+.widget-dnd > switch slider {
+  background: @fg;
+  border-radius: 12px;
+}
+
+.widget-buttons-grid {
+  padding: 4px;
+  margin: 4px;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button {
+  background: @bg-alt;
+  color: @fg;
+  border: 1px solid @border;
+  border-radius: 10px;
+  padding: 8px 6px;
+  min-height: 40px;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button:hover {
+  background: @border;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked {
+  background: @accent;
+  color: @bg;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked > label {
+  color: @bg;
+}
+
+.widget-volume,
+.widget-backlight {
+  background: @bg-alt;
+  border: 1px solid @border;
+  border-radius: 10px;
+  margin: 6px 8px;
+  padding: 4px 8px;
+  color: @fg;
+}
+
+.widget-volume label,
+.widget-backlight label {
+  color: @fg-dim;
+}
+
+.widget-volume trough,
+.widget-backlight trough {
+  background: @border;
+  border-radius: 8px;
+  min-height: 6px;
+}
+
+.widget-volume highlight,
+.widget-backlight highlight {
+  background: @accent;
+  border-radius: 8px;
+}
+
+.notification-row {
+  outline: none;
+}
+
+.notification {
+  background: @bg-alt;
+  border: 1px solid @border;
+  border-radius: 10px;
+  margin: 4px 8px;
+}
+
+.notification-content {
+  color: @fg;
+}
+
+.summary {
+  color: @fg;
+  font-weight: bold;
+}
+
+.body {
+  color: @fg-dim;
+}
+
+.time {
+  color: @fg-dim;
+}
+
+.close-button {
+  background: @bg-alt;
+  color: @fg-dim;
+  border-radius: 8px;
+}
+
+.close-button:hover {
+  background: @red;
+  color: @bg;
+}
+
+.notification.critical {
+  border-color: @red;
+}
