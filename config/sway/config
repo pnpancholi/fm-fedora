@@ -132,7 +132,8 @@ exec_always swayidle -w \
 exec_always /usr/libexec/polkit-gnome-authentication-agent-1
 exec_always dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 exec swaync
-exec_always swaybg -i ~/Pictures/wallpapers/default-wallpaper.jpg
+exec ~/.local/bin/fm-vm-clipboard
+exec_always swaybg -i ~/Pictures/wallpapers/nordic-wp.png
 
 # ── Window Rules ──
 for_window [app_id="pavucontrol"] floating enable, move position center

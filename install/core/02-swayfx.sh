@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
+# PKG: swayfx swaybg swayidle swaylock swayimg slurp grim xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol wl-clipboard [spice-vdagent xclip in VMs]
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing swayfx core packages..."
@@ -29,8 +29,12 @@ fi
 enable_copr "swayfx/swayfx"
 
 # 3. Install packages (swayfx replaces sway)
+CLIP_PKGS=(wl-clipboard)
+if systemd-detect-virt --quiet 2>/dev/null; then
+    CLIP_PKGS+=(spice-vdagent xclip)
+fi
 sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swaylock swayimg slurp grim \
-    xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol
+    xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
 info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
 
@@ -71,8 +75,8 @@ fi
 mkdir -p "$HOME/Pictures/wallpapers"
 
 # 8. Copy default wallpaper
-WALLPAPER_SRC="$FM_FEDORA_PATH/assets/default-wallpaper.jpg"
-WALLPAPER_DEST="$HOME/Pictures/wallpapers/default-wallpaper.jpg"
+WALLPAPER_SRC="$FM_FEDORA_PATH/assets/nordic-wp.png"
+WALLPAPER_DEST="$HOME/Pictures/wallpapers/nordic-wp.png"
 if [[ -f "$WALLPAPER_SRC" && ! -f "$WALLPAPER_DEST" ]]; then
     cp "$WALLPAPER_SRC" "$WALLPAPER_DEST"
     info "Installed default wallpaper"
@@ -86,7 +90,7 @@ verify_swayfx_install() {
 
     # 1. Check packages installed
     for pkg in swayfx swaybg swayidle swaylock swayimg slurp grim \
-               xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol; do
+               xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol wl-clipboard; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
             failed=1

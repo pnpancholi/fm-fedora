@@ -1,16 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: SwayNotificationCenter, power-profiles-daemon
+# PKG: SwayNotificationCenter
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing SwayNC control center..."
 
-# 1. Install packages (official Fedora repos)
-sudo dnf install -y SwayNotificationCenter power-profiles-daemon
+# 1. Install SwayNC (official Fedora repos)
+sudo dnf install -y SwayNotificationCenter
 
-# 2. Enable power profiles daemon
-sudo systemctl enable --now power-profiles-daemon.service
+# 2. Power profiles: Fedora 41+ ships tuned-ppd, which provides ppd-service
+#    and conflicts with power-profiles-daemon. Reuse the existing provider.
+if command -v powerprofilesctl >/dev/null 2>&1; then
+    info "power-profiles-daemon already present"
+elif rpm -q tuned-ppd >/dev/null 2>&1; then
+    info "tuned-ppd detected (Fedora default); using it for power profiles"
+    sudo systemctl enable --now tuned-ppd.service 2>/dev/null || true
+elif rpm -q tlp >/dev/null 2>&1; then
+    warn "TLP detected; skipping power-profiles-daemon to avoid conflict"
+else
+    info "Installing power-profiles-daemon..."
+    if sudo dnf install -y power-profiles-daemon; then
+        sudo systemctl enable --now power-profiles-daemon.service 2>/dev/null || true
+    else
+        warn "Could not install power-profiles-daemon; battery mode toggles may not work"
+    fi
+fi
 
 # 3. Stop competing notification daemons (best effort)
 for daemon in mako dunst; do
@@ -33,10 +48,6 @@ verify_swaync_install() {
         warn "Package missing: SwayNotificationCenter"
         failed=1
     fi
-    if ! rpm -q power-profiles-daemon >/dev/null 2>&1; then
-        warn "Package missing: power-profiles-daemon"
-        failed=1
-    fi
     if ! command -v swaync >/dev/null 2>&1; then
         warn "Binary missing: swaync"
         failed=1
@@ -45,8 +56,8 @@ verify_swaync_install() {
         warn "Binary missing: swaync-client"
         failed=1
     fi
-    if ! command -v powerprofilesctl >/dev/null 2>&1; then
-        warn "Binary missing: powerprofilesctl"
+    if ! command -v busctl >/dev/null 2>&1; then
+        warn "Binary missing: busctl (systemd)"
         failed=1
     fi
     if [[ ! -f "$HOME/.config/swaync/config.json" ]]; then

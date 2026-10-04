@@ -65,22 +65,22 @@
           "label": "Performance",
           "type": "toggle",
           "active": false,
-          "command": "sh -c '[[ $SWAYNC_TOGGLE_STATE == true ]] && powerprofilesctl set performance || powerprofilesctl set balanced'",
-          "update-command": "sh -c '[[ $(powerprofilesctl get) == \"performance\" ]] && echo true || echo false'"
+          "command": "sh -c '[[ $SWAYNC_TOGGLE_STATE == true ]] && busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s performance || busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s balanced'",
+          "update-command": "sh -c 'busctl --system get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile 2>/dev/null | grep -q performance && echo true || echo false'"
         },
         {
           "label": "Balanced",
           "type": "toggle",
           "active": true,
-          "command": "sh -c 'powerprofilesctl set balanced'",
-          "update-command": "sh -c '[[ $(powerprofilesctl get) == \"balanced\" ]] && echo true || echo false'"
+          "command": "sh -c 'busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s balanced'",
+          "update-command": "sh -c 'busctl --system get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile 2>/dev/null | grep -q balanced && echo true || echo false'"
         },
         {
           "label": "Power Saver",
           "type": "toggle",
           "active": false,
-          "command": "sh -c '[[ $SWAYNC_TOGGLE_STATE == true ]] && powerprofilesctl set power-saver || powerprofilesctl set balanced'",
-          "update-command": "sh -c '[[ $(powerprofilesctl get) == \"power-saver\" ]] && echo true || echo false'"
+          "command": "sh -c '[[ $SWAYNC_TOGGLE_STATE == true ]] && busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s power-saver || busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s balanced'",
+          "update-command": "sh -c 'busctl --system get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile 2>/dev/null | grep -q power-saver && echo true || echo false'"
         }
       ]
     },

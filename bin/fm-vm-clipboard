@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# fm-vm-clipboard — enable SPICE host<->guest clipboard under Sway.
+# Sway does not honor XDG autostart, so start spice-vdagent manually.
+# spice-vdagent is X11-only, so bridge the Wayland clipboard to X11.
+
+if ! systemd-detect-virt --quiet 2>/dev/null; then
+    exit 0
+fi
+
+if command -v spice-vdagent >/dev/null 2>&1; then
+    nohup spice-vdagent >/dev/null 2>&1 &
+fi
+
+if [[ -n "${DISPLAY:-}" ]] && command -v wl-paste >/dev/null 2>&1 && command -v xclip >/dev/null 2>&1; then
+    exec wl-paste --watch bash -c 'wl-paste -n 2>/dev/null | xclip -selection clipboard -i'
+fi

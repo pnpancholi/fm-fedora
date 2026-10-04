@@ -22,7 +22,7 @@ fm-fedora/
 │       └── 05-swaync.sh    # SwayNC control center
 ├── assets/
 │   ├── fm-fedora-banner.png
-│   └── default-wallpaper.jpg
+│   └── nordic-wp.png
 ├── bin/                    # CLI tools (fm, fm-create-sway-desktop)
 ├── config/
 │   ├── sway/config         # SwayFX config
@@ -82,4 +82,4 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - Ghostty from COPR `scottames/ghostty`
 - Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules
-- Wallpaper: `assets/default-wallpaper.jpg` copied to `~/Pictures/wallpapers/` by `02-swayfx.sh`
+- Wallpaper: `assets/nordic-wp.png` copied to `~/Pictures/wallpapers/` by `02-swayfx.sh`
