@@ -40,8 +40,20 @@ info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
 
 CONFIG_DIR="$FM_FEDORA_PATH/config/sway"
 
-# 4. Write main sway config
-write_config_ensure "$HOME/.config/sway/config" "$(cat "$CONFIG_DIR/config")"
+# Read theme primary color from theme.conf
+THEME_PRIMARY=$(grep -E '^\s*set\s+\$theme_primary\s+' "$CONFIG_DIR/theme.conf" | head -1 | awk '{print $3}')
+if [[ -z "$THEME_PRIMARY" ]]; then
+    THEME_PRIMARY="#7aa2f7"  # Tokyo Night default fallback
+    warn "Could not read theme color from theme.conf, using default: $THEME_PRIMARY"
+fi
+
+# 4. Write main sway config with theme substitution
+local sway_config_content
+sway_config_content="$(cat "$CONFIG_DIR/config")"
+sway_config_content="${sway_config_content//@THEME_PRIMARY@/$THEME_PRIMARY}"
+write_config_ensure "$HOME/.config/sway/config" "$sway_config_content"
+
+# 5. Copy theme.conf for user reference/editing
 write_config_ensure "$HOME/.config/sway/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
 
 # 5. Environment.d for systemd/user services
