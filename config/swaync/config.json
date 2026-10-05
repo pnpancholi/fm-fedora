@@ -26,16 +26,25 @@
   "hide-on-clear": false,
   "hide-on-action": true,
   "script-fail-notify": true,
+  "text-empty": "No notifications",
   "widgets": [
+    "backlight",
     "volume",
-    "backlight"
+    "label",
+    "notifications"
   ],
   "widget-config": {
+    "backlight": {
+      "label": "Brightness"
+    },
     "volume": {
       "label": "Volume"
     },
-    "backlight": {
-      "label": "Brightness"
+    "label": {
+      "text": "Notifications"
+    },
+    "notifications": {
+      "vexpand": true
     }
   }
 }
