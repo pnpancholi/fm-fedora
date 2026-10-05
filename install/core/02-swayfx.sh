@@ -26,22 +26,19 @@ EOF
     fi
 fi
 
-# 2. Enable swayfx COPR (official)
+# 2. Enable COPRs
 enable_copr "swayfx/swayfx"
+enable_copr "pheeef/swaylock-effects"
 
-# 3. Install packages (swayfx replaces sway)
+# 3. Install packages (swayfx replaces sway, swaylock-effects replaces swaylock)
 CLIP_PKGS=(wl-clipboard)
 if systemd-detect-virt --quiet 2>/dev/null; then
     CLIP_PKGS+=(spice-vdagent xclip)
 fi
-sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swayimg slurp grim \
+sudo dnf install -y --allowerasing --skip-unavailable swayfx swaybg swayidle swaylock-effects swayimg slurp grim \
     xdg-desktop-portal-wlr brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
 info "xdg-desktop-portal-wlr installed (D-Bus activated on demand)"
-
-# 3a. Install swaylock-effects (wallpaper blur lock screen, replaces swaylock)
-enable_copr "pheeef/swaylock-effects"
-sudo dnf install -y --allowerasing --skip-unavailable swaylock-effects
 
 # 3b. Verify swayfx actually replaced sway
 if ! sway -v 2>&1 | grep -qi swayfx; then
