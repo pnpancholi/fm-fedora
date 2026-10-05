@@ -20,7 +20,7 @@
 .control-center {
   background: @bg;
   border: 1px solid @border;
-  border-radius: 12px;
+  border-radius: 0;
   color: @fg;
 }
 
@@ -42,7 +42,7 @@
   background: @bg-alt;
   color: @fg;
   border: 1px solid @border;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .widget-title > button:hover {
@@ -58,7 +58,7 @@
 .widget-dnd > switch {
   background: @bg-alt;
   border: 1px solid @border;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .widget-dnd > switch:checked {
@@ -67,7 +67,7 @@
 
 .widget-dnd > switch slider {
   background: @fg;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .widget-buttons-grid {
@@ -79,7 +79,7 @@
   background: @bg-alt;
   color: @fg;
   border: 1px solid @border;
-  border-radius: 10px;
+  border-radius: 0;
   padding: 8px 6px;
   min-height: 40px;
 }
@@ -101,7 +101,7 @@
 .widget-backlight {
   background: @bg-alt;
   border: 1px solid @border;
-  border-radius: 10px;
+  border-radius: 0;
   margin: 6px 8px;
   padding: 4px 8px;
   color: @fg;
@@ -115,14 +115,14 @@
 .widget-volume trough,
 .widget-backlight trough {
   background: @border;
-  border-radius: 8px;
+  border-radius: 0;
   min-height: 6px;
 }
 
 .widget-volume highlight,
 .widget-backlight highlight {
   background: @accent;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .notification-row {
@@ -132,7 +132,7 @@
 .notification {
   background: @bg-alt;
   border: 1px solid @border;
-  border-radius: 10px;
+  border-radius: 0;
   margin: 4px 8px;
 }
 
@@ -156,7 +156,7 @@
 .close-button {
   background: @bg-alt;
   color: @fg-dim;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .close-button:hover {
