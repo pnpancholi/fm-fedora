@@ -46,6 +46,13 @@
     --notification-group-icon-size: 20px;
     --font-size-body: 13px;
     --font-size-summary: 13px;
+
+    /* MPRIS tile: upstream draws a 96px blurred-photo card with a heavy drop
+     * shadow and a dark scrim. Flatten all four to match the rest of the panel. */
+    --mpris-album-art-icon-size: 64px;
+    --mpris-album-art-shadow: none;
+    --mpris-album-art-overlay: transparent;
+    --mpris-button-hover: var(--fm-bg-hover);
 }
 
 * {
@@ -236,21 +243,52 @@
 }
 
 /* ── MPRIS / now playing ─────────────────────────────────────────────────── */
+/* The outer .widget-mpris is only a carousel container (one .widget-mpris-player
+ * per running player), so the card belongs on the player, not the widget. */
 
 .widget-mpris {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.widget-mpris-player {
+    margin: 2px 14px 8px;              /* same gutters as buttons-grid#connectivity */
     background: var(--fm-bg-alt);
     border: 1px solid var(--fm-border);
     border-radius: 0;
-    margin: 6px 8px;
-    padding: 6px;
+    box-shadow: none;
+}
+
+/* upstream blurs the album art behind itself; we keep a flat card instead */
+.widget-mpris-player .mpris-background {
+    filter: none;
+}
+
+.widget-mpris-player .mpris-overlay {
+    padding: 10px 12px;
+    background-color: transparent;
+}
+
+.widget-mpris-player .mpris-overlay button:hover {
+    background: var(--mpris-button-hover);
+}
+
+.widget-mpris-player .widget-mpris-album-art {
+    border-radius: 0;
+    box-shadow: none;
+    margin-right: 10px;
+}
+
+.widget-mpris-player .widget-mpris-title {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--fm-fg);
 }
 
-.widget-mpris-title {
-    font-weight: 700;
-}
-
-.widget-mpris-subtitle {
+.widget-mpris-player .widget-mpris-subtitle {
+    font-size: 12px;
     color: var(--fm-fg-dim);
 }
 

@@ -33,6 +33,7 @@
     "volume",
     "buttons-grid#connectivity",
     "label#now-playing",
+    "mpris",
     "label#notifications-header"
   ],
   "widget-config": {
@@ -51,6 +52,10 @@
     },
     "label#now-playing": {
       "text": "Now Playing"
+    },
+    "mpris": {
+      "autohide": true,
+      "show-album-art": "when-available"
     },
     "label#notifications-header": {
       "text": "Notifications"

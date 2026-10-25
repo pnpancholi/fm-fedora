@@ -75,6 +75,7 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 | Run installer | `bash boot.sh` |
 | Lint all scripts | `shellcheck install/**/*.sh lib/*.sh boot.sh install.sh` |
 | Add new module | Create `install/core/NN-name.sh`, add to install.sh, use helpers for logging |
+| Fake an MPRIS player to test the Now Playing tile | `./bin/fm-mock-player` (needs `python3-dbus python3-gobject`; dev aid, never installed) |
 
 ## Gotchas / Tribal Knowledge
 - `boot.sh` clones to `~/.local/share/fm-fedora` by default (override via `FM_FEDORA_HOME`)
