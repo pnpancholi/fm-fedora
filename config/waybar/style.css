@@ -65,14 +65,24 @@ window#waybar {
     padding: 0 10px;
     margin: 0;
     min-width: 16px;
-    background: transparent;
+    background-color: transparent;
     color: @fg-dim;
     border: none;
     border-bottom: 2px solid transparent;
     border-radius: 0;
     box-shadow: none;
     text-shadow: none;
-    transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+    /* same inset hairline as the right cluster */
+    background-image: linear-gradient(@border, @border);
+    background-size: 1px 55%;
+    background-position: right center;
+    background-repeat: no-repeat;
+    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+/* No divider trailing the last visible tag. */
+#workspaces button:last-child {
+    background-image: none;
 }
 
 /* Only tags in the current view are drawn (ignore-hidden), so this is in
@@ -88,7 +98,7 @@ window#waybar {
 }
 
 #workspaces button:hover {
-    background: @bg-alt;
+    background-color: @bg-alt;
     color: @fg;
 }
 
@@ -103,22 +113,36 @@ window#waybar {
 
 /* ── 5. Right cluster ────────────────────────────────────────────────────── */
 
+/* One hairline per slot, drawn on the right edge so a divider always sits
+ * between two icons. Rendered as a 1px background gradient rather than a
+ * border so it can be inset vertically instead of running the full bar
+ * height. The last slot drops it. */
 #image,
 #network,
 #bluetooth,
 #pulseaudio,
 #custom-menu {
-    padding: 0 11px;
+    padding: 0 10px;
     color: @fg;
-    transition: color 150ms ease, background 150ms ease;
+    background-image: linear-gradient(@border, @border);
+    background-size: 1px 55%;
+    background-position: right center;
+    background-repeat: no-repeat;
+    transition: color 150ms ease, background-color 150ms ease;
 }
 
+#custom-menu {
+    background-image: none;
+    padding-right: 12px;
+}
+
+/* background-color, not background: the shorthand would wipe the divider. */
 #image:hover,
 #network:hover,
 #bluetooth:hover,
 #pulseaudio:hover,
 #custom-menu:hover {
-    background: @bg-alt;
+    background-color: @bg-alt;
 }
 
 /* Vicinae launcher logo — a little more room than the text modules. */
