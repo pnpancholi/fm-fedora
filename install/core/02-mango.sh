@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: mangowm swaybg swayidle swaylock-effects swayimg slurp grim wlopm
+# PKG: mangowm swaybg swayidle swaylock swayimg slurp grim wlopm
 #      xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk
-#      brightnessctl playerctl pavucontrol wl-clipboard cliphist [swaylock if
-#      swaylock-effects is unavailable] [spice-vdagent xclip in VMs]
-# REPO: terra (repos.fyralabs.com; disabled by default, enabled per-command),
-#       COPR pheeef/swaylock-effects
+#      brightnessctl playerctl pavucontrol wl-clipboard cliphist
+#      [spice-vdagent xclip in VMs]
+# REPO: terra (repos.fyralabs.com; disabled by default, enabled per-command)
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing mango core packages..."
@@ -46,10 +45,10 @@ if ! grep -rhqE '^gpgcheck=1' /etc/yum.repos.d/terra*.repo 2>/dev/null; then
     return 1
 fi
 
-# 2. swaylock-effects (COPR) — replaces plain swaylock
-enable_copr "pheeef/swaylock-effects"
+# 1c. Drop the abandoned swaylock-effects COPR if a previous run enabled it
+sudo rm -f "/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:pheeef:swaylock-effects.repo"
 
-# 3. Install compositor (pinned), then session/portal tools
+# 2. Install compositor (pinned), then session/portal tools
 if ! sudo dnf install -y --enablerepo='terra*' "mangowm-${MANGO_VERSION}"; then
     warn "mangowm-${MANGO_VERSION} unavailable in Terra, installing latest instead"
     warn "Re-check the version and update MANGO_VERSION in this module"
@@ -62,35 +61,12 @@ if systemd-detect-virt --quiet 2>/dev/null; then
 fi
 
 sudo dnf install -y --allowerasing --skip-unavailable \
-    swaybg swayidle swayimg slurp grim wlopm \
+    swaybg swayidle swaylock swayimg slurp grim wlopm \
     xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
     brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
-# 3b. Lock screen. The pheeef/swaylock-effects COPR only has builds up to
-#     Fedora 41, so newer releases fall back to Fedora's plain swaylock.
-if sudo dnf install -y --allowerasing swaylock-effects 2>/dev/null; then
-    SWAYLOCK_CONFIG="image=$HOME/Pictures/wallpapers/nordic-wp.png
-scaling=fill
-effect-blur=7x5
-clock
-timestr=%H:%M
-datestr=$USER
-text-color=ffffff
-indicator
-indicator-radius=60
-indicator-thickness=4
-ring-color=00000000
-inside-color=00000088
-line-color=00000000
-key-hl-color=7aa2f7
-text-clear=
-text-ver=Verifying...
-text-wrong=Wrong
-"
-else
-    warn "swaylock-effects has no build for this Fedora release; using plain swaylock"
-    sudo dnf install -y swaylock
-    SWAYLOCK_CONFIG="color=1e1e1e
+# 2b. Lock screen config. Fedora's swaylock only does solid colors.
+SWAYLOCK_CONFIG="color=1e1e1e
 indicator
 indicator-radius=60
 indicator-thickness=4
@@ -100,7 +76,6 @@ line-color=1e1e1e
 key-hl-color=7aa2f7
 text-color=ffffff
 "
-fi
 
 command -v mango >/dev/null 2>&1 || { error "mango binary not found after install"; return 1; }
 success "mangowm $(rpm -q --qf '%{VERSION}' mangowm) installed"
@@ -116,7 +91,7 @@ org.freedesktop.impl.portal.ScreenCast=wlr
 org.freedesktop.impl.portal.Screenshot=wlr
 "
 
-# 6. Lock screen config (chosen in step 3b)
+# 6. Lock screen config (defined in step 2b)
 write_config_ensure "$HOME/.config/swaylock/config" "$SWAYLOCK_CONFIG"
 
 # 7. environment.d for systemd/user services (all GPUs)
@@ -170,7 +145,7 @@ verify_mango_install() {
 
     local failed=0
 
-    for pkg in mangowm swaybg swayidle swayimg slurp grim wlopm \
+    for pkg in mangowm swaybg swayidle swaylock swayimg slurp grim wlopm \
                xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
                brightnessctl playerctl pavucontrol wl-clipboard cliphist; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
@@ -213,10 +188,6 @@ verify_mango_install() {
             warn "mango config check failed — run: mango -c ~/.config/mango/config.conf -p"
             failed=1
         fi
-    fi
-
-    if [[ -f "$HOME/.config/sway/config" ]]; then
-        info "Keeping ~/.config/sway/config for SwayFX rollback"
     fi
 
     if [[ $failed -eq 0 ]]; then
