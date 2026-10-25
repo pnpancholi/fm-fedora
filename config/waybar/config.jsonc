@@ -1,42 +1,52 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 28,
-    "spacing": 4,
-    "modules-left": ["mango/workspaces", "mango/layout", "mango/window"],
-    "modules-center": ["clock"],
-    "modules-right": ["mpris", "tray", "memory", "cpu", "network", "bluetooth", "pulseaudio", "battery", "custom/notification"],
-
-    "mango/workspaces": {
-        "format": "{icon}",
-        "hide-empty": true,
+    "height": 40,
+    "spacing": 0,
+    "modules-left": [
+        "ext/workspaces"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "mpris",
+        "tray",
+        "network",
+        "bluetooth",
+        "pulseaudio",
+        "cpu",
+        "memory",
+        "battery",
+        "custom/notification"
+    ],
+    /* Waybar 0.15 has no mango/* modules: mango speaks ext-workspace-v1,
+     * which Waybar exposes as ext/workspaces. Names come from mango's tag
+     * presets ("1".."31"); the protocol carries no occupancy info, so all
+     * nine tags are always drawn and inactive ones dim via .hidden. */
+    "ext/workspaces": {
+        "format": "{name}",
+        "ignore-hidden": false,
+        "sort-by-name": true,
         "on-click": "activate",
-        "on-click-right": "toggle",
-        "overview-label": "OVERVIEW",
-        "format-icons": {
-            "active": "■",
-            "inactive": "□",
-            "urgent": "◌"
+        "on-click-right": "deactivate"
+    },
+    /* Clock formats are std::chrono, not strftime: a bare "%H:%M" prints
+     * literally on Waybar >= 0.11. */
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%a %d %b %Y}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "right"
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
         }
     },
-
-    "mango/window": {
-        "format": "{}",
-        "max-length": 45
-    },
-
-    "mango/layout": {
-        "format": "{}"
-    },
-
-    "clock": {
-        "format": "%H:%M",
-        "tooltip-format": "%A, %B %d, %Y",
-        "format-alt": "%Y-%m-%d",
-        "on-click": "ghostty -e bash -c 'cal -3; read -n1'",
-        "on-click-right": "ghostty -e bash -c 'calcurse; read -n1'"
-    },
-
     "mpris": {
         "format": "{player_icon} {artist} - {title}",
         "format-paused": "⏸ {artist} - {title}",
@@ -48,21 +58,14 @@
             "mpv": "▶",
             "firefox": ""
         },
-        "ignored-players": ["chromium"]
+        "ignored-players": [
+            "chromium"
+        ]
     },
-
-    "memory": {
-        "format": " {}%",
-        "interval": 5,
-        "on-click": "ghostty -e btop"
+    "tray": {
+        "icon-size": 18,
+        "spacing": 4
     },
-
-    "cpu": {
-        "format": " {}%",
-        "interval": 5,
-        "on-click": "ghostty -e btop"
-    },
-
     "network": {
         "format-wifi": " {essid} ({signalStrength}%)",
         "format-ethernet": "󰀂",
@@ -71,32 +74,49 @@
         "on-click": "ghostty -e nmtui",
         "on-click-right": "gnome-control-center wifi"
     },
-
     "bluetooth": {
         "format": "",
         "format-disconnected": "󰂲",
         "format-off": "󰂲",
         "on-click": "blueman-manager"
     },
-
     "pulseaudio": {
         "format": "{volume}% {icon}",
         "format-muted": "",
         "format-icons": {
             "headphone": "",
             "headset": "",
-            "default": ["", "", ""]
+            "default": [
+                "",
+                "",
+                ""
+            ]
         },
         "scroll-step": 5,
         "on-click": "pavucontrol",
         "on-click-right": "pamixer -t"
     },
-
+    "cpu": {
+        "format": " {}%",
+        "interval": 5,
+        "on-click": "ghostty -e btop"
+    },
+    "memory": {
+        "format": " {}%",
+        "interval": 5,
+        "on-click": "ghostty -e btop"
+    },
     "battery": {
         "format": "{capacity}% {icon}",
         "format-charging": " {capacity}%",
         "format-plugged": "",
-        "format-icons": ["", "", "", "", ""],
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
         "states": {
             "warning": 20,
             "critical": 10
@@ -104,12 +124,6 @@
         "on-click": "ghostty -e bash -c 'upower -i /org/freedesktop/UPower/devices/battery_BAT0; read -n1'",
         "on-click-right": "pavucontrol"
     },
-
-    "tray": {
-        "icon-size": 16,
-        "spacing": 4
-    },
-
     "custom/notification": {
         "tooltip": false,
         "format": "{icon}",

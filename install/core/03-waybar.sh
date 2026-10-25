@@ -67,4 +67,11 @@ verify_waybar_install() {
 
 verify_waybar_install
 
+# 6. Reload a running bar so changes land immediately, without a logout.
+#    SIGUSR2 makes waybar re-read config.jsonc and style.css in place.
+if [[ -n "${WAYLAND_DISPLAY:-}" ]] && pgrep -x waybar >/dev/null 2>&1; then
+    info "Reloading waybar..."
+    pkill -USR2 -x waybar || true
+fi
+
 success "waybar configured."

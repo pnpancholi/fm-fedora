@@ -1,22 +1,41 @@
-/* Waybar Tokyo Night Theme — fm-fedora */
+/* Waybar — fm-fedora
+ *
+ * Tokyo Night, drawn as one flat surface: the bar is painted the same colour as
+ * mango's theme_bg, so bar and tiling gaps read as a single dark plane.
+ *
+ * Structure:
+ *   1. base surface
+ *   2. groups
+ *   3. left cluster   (tags)
+ *   4. centre         (clock)
+ *   5. right cluster  (status, split into three groups by 1px separators)
+ *   6. states
+ *   7. tooltip
+ */
 
-@define-color bg #1a1b26;
-@define-color bg-alt #24283b;
-@define-color fg #c0caf5;
-@define-color fg-dim #787c99;
-@define-color accent #7aa2f7;
+/* ── Palette ─────────────────────────────────────────────────────────────── */
+
+@define-color bg         #1e1e1e;   /* == mango theme_bg */
+@define-color bg-alt     #24283b;
+@define-color fg         #c0caf5;
+@define-color fg-dim     #787c99;
+@define-color accent     #7aa2f7;
 @define-color accent-alt #bb9af7;
-@define-color green #9ece6a;
-@define-color yellow #e0af68;
-@define-color red #f7768e;
-@define-color cyan #7dcfff;
-@define-color border #292e42;
+@define-color green      #9ece6a;
+@define-color yellow     #e0af68;
+@define-color red        #f7768e;
+@define-color cyan       #7dcfff;
+@define-color border     #292e42;
+
+/* ── 1. Base surface ─────────────────────────────────────────────────────── */
 
 * {
     border: none;
     border-radius: 0;
+    box-shadow: none;
+    text-shadow: none;
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 13px;
+    font-size: 14px;
     min-height: 0;
 }
 
@@ -26,102 +45,192 @@ window#waybar {
     border-bottom: 1px solid @border;
 }
 
-/* Workspaces */
+/* ── 2. Groups ───────────────────────────────────────────────────────────── */
+
+.modules-left,
+.modules-center,
+.modules-right {
+    margin: 0;
+    padding: 0;
+}
+
+/* ── 3. Tags ─────────────────────────────────────────────────────────────── */
+
 #workspaces {
-    padding: 0 4px;
+    padding: 0 8px;
 }
 
+/* Reset GTK's button chrome explicitly — `all: initial` is not reliable GTK CSS. */
 #workspaces button {
-    all: initial;
     padding: 0 10px;
-    color: @fg-dim;
+    margin: 0;
+    min-width: 16px;
     background: transparent;
-}
-
-#workspaces button.active {
-    background: @bg-alt;
-    color: @accent;
-}
-
-/* Tags hidden by mango (occupying no workspace) */
-#workspaces button.hidden {
     color: @fg-dim;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: none;
+    transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+/* Not part of the current view: still clickable, just receding. */
+#workspaces button.hidden {
     opacity: 0.55;
 }
 
+#workspaces button.active {
+    color: @accent;
+    border-bottom-color: @accent;
+    opacity: 1;
+}
+
 #workspaces button.urgent {
-    background: @red;
-    color: @bg;
+    color: @red;
+    border-bottom-color: @red;
+    opacity: 1;
 }
 
 #workspaces button:hover {
     background: @bg-alt;
     color: @fg;
+    opacity: 1;
 }
 
-/* Window title */
-#window {
-    padding: 0 12px;
-    color: @fg-dim;
-}
+/* ── 4. Clock ────────────────────────────────────────────────────────────── */
 
-/* Active layout indicator */
-#layout {
-    padding: 0 10px;
-    color: @fg-dim;
-}
-
-/* Clock */
 #clock {
-    padding: 0 16px;
-    font-weight: 500;
+    padding: 0 14px;
+    color: @fg;
+    font-weight: 600;
 }
 
-/* Right modules - island style with left borders */
+/* ── 5. Right cluster ────────────────────────────────────────────────────── */
+
 #mpris,
-#memory,
-#cpu,
 #network,
 #bluetooth,
 #pulseaudio,
+#cpu,
+#memory,
 #battery {
-    padding: 0 12px;
+    padding: 0 11px;
+    color: @fg;
+    transition: color 150ms ease, background 150ms ease;
+}
+
+#mpris:hover,
+#network:hover,
+#bluetooth:hover,
+#pulseaudio:hover,
+#cpu:hover,
+#memory:hover,
+#battery:hover {
     background: @bg-alt;
+}
+
+/* Group separators:
+ *   mpris │ network bluetooth pulseaudio │ cpu memory battery notification
+ * One 1px rule starts each group; no islands, no background blocks. */
+#network {
     border-left: 1px solid @border;
 }
 
+#cpu {
+    border-left: 1px solid @border;
+}
 
-
-/* Tray */
 #tray {
-    padding: 0 8px;
+    padding: 0 10px;
 }
 
-/* State colors */
-#battery.warning { color: @yellow; }
-#battery.critical { color: @red; }
-#memory.warning { color: @yellow; }
-#memory.critical { color: @red; }
-#cpu.warning { color: @yellow; }
-#cpu.critical { color: @red; }
-#pulseaudio.muted { color: @fg-dim; }
-
-/* Tooltips */
-tooltip {
-    background: @bg;
-    border: 1px solid @border;
-    border-radius: 4px;
+#tray > .passive {
+    -gtk-icon-effect: dim;
 }
 
-/* Notification / control center */
-#custom-notification {
-    padding: 0 12px;
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+#tray menu {
     background: @bg-alt;
-    border-left: 1px solid @border;
+    color: @fg;
+    border: 1px solid @border;
+}
+
+/* ── 6. States ───────────────────────────────────────────────────────────── */
+
+#mpris.paused {
+    color: @fg-dim;
+}
+
+/* Nothing playing: collapse the module instead of leaving a padded gap. */
+#mpris.stopped {
+    padding: 0;
+    border: none;
+}
+
+#network.disconnected,
+#network.disabled {
+    color: @red;
+}
+
+#network.linked {
+    color: @yellow;
+}
+
+#bluetooth.disabled,
+#bluetooth.off {
+    color: @fg-dim;
+}
+
+#pulseaudio.muted {
+    color: @fg-dim;
+}
+
+#cpu.warning,
+#memory.warning {
+    color: @yellow;
+}
+
+#cpu.critical,
+#memory.critical {
+    color: @red;
+}
+
+#battery.warning {
+    color: @yellow;
+}
+
+#battery.critical {
+    color: @red;
+}
+
+/* Last, so a charging battery stays green even below the warning threshold. */
+#battery.charging,
+#battery.plugged {
+    color: @green;
+}
+
+#custom-notification {
+    padding: 0 14px 0 12px;
     color: @fg;
 }
 
 #custom-notification.dnd-none,
 #custom-notification.dnd-notification {
     color: @yellow;
+}
+
+/* ── 7. Tooltip ──────────────────────────────────────────────────────────── */
+
+tooltip {
+    background: @bg-alt;
+    border: 1px solid @border;
+    border-radius: 4px;
+}
+
+tooltip label {
+    color: @fg;
 }
