@@ -12,6 +12,10 @@ Dependencies (Fedora): python3-dbus python3-gobject
     ./bin/fm-mock-player --paused     # start paused
     ./bin/fm-mock-player --track 3    # start on the third track
     ./bin/fm-mock-player --list       # print the track list and exit
+    ./bin/fm-mock-player --art [PATH] # write the generated album art PNG and exit
+
+The player publishes album art as a data: URI holding a generated gradient, so
+the Now Playing tile has a real image to lay out with no extra files involved.
 
 Verify from another terminal:
     gdbus call --session --dest org.freedesktop.DBus --object-path /org/freedesktop/DBus \
@@ -19,7 +23,10 @@ Verify from another terminal:
 """
 
 import argparse
+import base64
+import struct
 import sys
+import zlib
 
 # (title, artist, album, length in seconds)
 TRACKS = [
@@ -27,6 +34,54 @@ TRACKS = [
     ("Glass Corridor", "Ambient Assembly", "Long Exposure", 187),
     ("Terminal Velocity", "Kernel Panic", "Signals", 245),
 ]
+
+# ── album art ────────────────────────────────────────────────────────────────
+# SwayNC only draws art that the player publishes as mpris:artUrl, and it
+# accepts data: URIs. So instead of shipping a PNG (or depending on Pillow), a
+# 300x300 vertical gradient is encoded here with zlib: IHDR + one IDAT + IEND,
+# truecolour RGB, filter type 0 on every scanline.
+
+ART_TOP = (0x24, 0x28, 0x3B)     # == --fm-bg-alt
+ART_BOTTOM = (0x7A, 0xA2, 0xF7)  # == --fm-accent
+
+
+def png_gradient(width, height, top, bottom):
+    raw = bytearray()
+    for y in range(height):
+        t = y / max(height - 1, 1)
+        pixel = bytes(round(top[i] + (bottom[i] - top[i]) * t) for i in range(3))
+        raw += b"\x00" + pixel * width  # 0x00 = "no filter" for this scanline
+
+    def chunk(kind, data):
+        return (
+            struct.pack(">I", len(data))
+            + kind
+            + data
+            + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+        )
+
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", zlib.compress(bytes(raw), 9))
+        + chunk(b"IEND", b"")
+    )
+
+
+ART_URL = "data:image/png;base64," + base64.b64encode(
+    png_gradient(300, 300, ART_TOP, ART_BOTTOM)
+).decode("ascii")
+
+# --art writes that PNG to disk, which makes the encoder checkable without a bus
+if "--art" in sys.argv[1:]:
+    _argv = sys.argv[1:]
+    _i = _argv.index("--art")
+    _dest = _argv[_i + 1] if len(_argv) > _i + 1 else "/tmp/fm-mock-player-art.png"
+    with open(_dest, "wb") as _fh:
+        _fh.write(png_gradient(300, 300, ART_TOP, ART_BOTTOM))
+    print(_dest)
+    sys.exit(0)
 
 # --list has to work before the dbus import: it is the one mode that is useful
 # on a machine without the python bindings installed.
@@ -88,6 +143,7 @@ class MockPlayer(dbus.service.Object):
                 "xesam:title": dbus.String(title),
                 "xesam:artist": dbus.Array([dbus.String(artist)], signature="s"),
                 "xesam:album": dbus.String(album),
+                "mpris:artUrl": dbus.String(ART_URL),
             },
             signature="sv",
         )

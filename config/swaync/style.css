@@ -292,6 +292,44 @@
     color: var(--fm-fg-dim);
 }
 
+/* SwayNC hardcodes five buttons per player — shuffle, prev, play/pause, next,
+ * repeat — and only ever greys out prev/next, so a stylesheet is the only way
+ * down to play/pause alone. GTK4 has no display/visibility: none, so the
+ * unwanted ones are collapsed to zero size: padding, min-size and border off,
+ * and -gtk-icon-size: 0 to remove the icon that gives an icon button its size.
+ * A 0x0 button is also unhittable — opacity: 0 alone would leave invisible
+ * click targets, so clicking beside play would shuffle or skip. */
+.widget-mpris-player .mpris-overlay box:last-child > button:nth-child(1),
+.widget-mpris-player .mpris-overlay box:last-child > button:nth-child(2),
+.widget-mpris-player .mpris-overlay box:last-child > button:nth-child(4),
+.widget-mpris-player .mpris-overlay box:last-child > button:nth-child(5) {
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    -gtk-icon-size: 0;
+}
+
+/* carousel arrows, only shown while two players run at once */
+.widget-mpris > box > button {
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    -gtk-icon-size: 0;
+}
+
+/* libadwaita paints the dots itself and sizes them in measure(), so they cannot
+ * be collapsed — only hidden. Only ever visible with 2+ players. */
+.widget-mpris > carouselindicatordots {
+    opacity: 0;
+}
+
 /* ── Notifications ───────────────────────────────────────────────────────── */
 
 .notification-row {
