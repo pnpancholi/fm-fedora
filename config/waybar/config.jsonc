@@ -13,7 +13,8 @@
         "image#vicinae",
         "network",
         "bluetooth",
-        "pulseaudio"
+        "pulseaudio",
+        "custom/menu"
     ],
     /* Waybar 0.15 has no mango/* modules: mango speaks ext-workspace-v1,
      * which Waybar exposes as ext/workspaces. ignore-hidden keeps only
@@ -39,21 +40,28 @@
         "tooltip": false,
         "on-click": "vicinae toggle"
     },
+    /* One glyph in every state (U+F1EB) so the bar always reads the same;
+     * state is carried by colour. The name follows the glyph while a link
+     * is up: {essid} on wifi, {ifname} on wired -- Waybar exposes no
+     * NetworkManager profile name, so the device name is the closest. */
     "network": {
         "format-wifi": " {essid}",
-        "format-ethernet": "",
-        "format-disconnected": "",
+        "format-ethernet": " {ifname}",
+        "format-disconnected": "",
         "tooltip-format-wifi": "{essid}\n{signaldBm} dBm · {ipaddr}",
         "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
         "tooltip-format-disconnected": "Disconnected",
         "interval": 10,
-        "on-click": "ghostty -e nmtui"
+        "on-click": "ghostty -e nmtui",
+        "format-linked": ""
     },
+    /* Same idea: one glyph, dimmed via .off / .disabled rather than a
+     * different icon, so the slot never collapses. */
     "bluetooth": {
         "format": "",
         "format-disconnected": "",
         "format-off": "",
-        "format-no-controller": "",
+        "format-no-controller": "",
         "on-click": "ghostty -e bluetoothctl"
     },
     /* Icons follow the sink port name: headphone / speaker / headset keys
@@ -72,5 +80,11 @@
         "scroll-step": 5,
         "on-click": "pavucontrol",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+    /* Hamburger, rightmost. Presentation only for now; the notification
+     * centre binding goes here later: "on-click": "swaync-client -t -sw". */
+    "custom/menu": {
+        "format": "",
+        "tooltip": false
     }
 }
