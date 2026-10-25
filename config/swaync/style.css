@@ -152,18 +152,25 @@
     color: var(--fm-bg);
 }
 
-/* Connectivity toggles: glyph-only, so give them a little more presence than
- * a text button and a hairline gap between the pair. */
+/* Connectivity toggles: glyph + name. The grid is inset from the panel edges
+ * and each cell carries its own gap, so the block reads narrower than the
+ * panel instead of stretching edge to edge. */
+.widget-buttons-grid.connectivity {
+    margin: 4px 14px 10px;
+    padding: 0;
+}
+
 .widget-buttons-grid.connectivity flowboxchild {
-    padding: 2px;
+    padding: 4px;
 }
 
 .widget-buttons-grid.connectivity flowboxchild > button {
-    min-height: 44px;
+    min-height: 42px;
+    padding: 8px 6px;
 }
 
 .widget-buttons-grid.connectivity flowboxchild > button label {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* ── Sliders (volume / generic) ──────────────────────────────────────────── */

@@ -59,22 +59,22 @@
       "buttons-per-row": 2,
       "actions": [
         {
-          "label": "",
+          "label": " Wi-Fi",
           "type": "toggle",
           "active": false
         },
         {
-          "label": "",
+          "label": " Bluetooth",
           "type": "toggle",
           "active": false
         },
         {
-          "label": "",
+          "label": " Airplane",
           "type": "toggle",
           "active": false
         },
         {
-          "label": "",
+          "label": " Do Not Disturb",
           "type": "toggle",
           "active": false
         }
