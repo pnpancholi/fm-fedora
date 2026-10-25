@@ -31,6 +31,7 @@
     "label#quick-settings",
     "slider#brightness",
     "volume",
+    "buttons-grid#connectivity",
     "label#now-playing",
     "label#notifications-header"
   ],
@@ -53,6 +54,31 @@
     },
     "label#notifications-header": {
       "text": "Notifications"
+    },
+    "buttons-grid#connectivity": {
+      "buttons-per-row": 2,
+      "actions": [
+        {
+          "label": "",
+          "type": "toggle",
+          "active": false
+        },
+        {
+          "label": "",
+          "type": "toggle",
+          "active": false
+        },
+        {
+          "label": "",
+          "type": "toggle",
+          "active": false
+        },
+        {
+          "label": "",
+          "type": "toggle",
+          "active": false
+        }
+      ]
     }
   }
 }
