@@ -86,7 +86,7 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - `swaymsg` does not exist here: idle DPMS uses `wlopm`, exit uses `quit`
 - mango ships `/usr/share/wayland-sessions/mango.desktop` itself — no desktop-file hack needed
 - Config is validated offline with `mango -c <file> -p`
-- swaylock-effects from COPR `pheeef/swaylock-effects` (replaces `swaylock`); config at `~/.config/swaylock/config` = wallpaper + blur, clock, username as datestr, ringless input field
+- swaylock: try COPR `pheeef/swaylock-effects` first, but that COPR has no builds past Fedora 41 — `02-mango.sh` falls back to Fedora's plain `swaylock` with a color-only config. Config at `~/.config/swaylock/config`
 - Ghostty from COPR `scottames/ghostty`
 - Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules

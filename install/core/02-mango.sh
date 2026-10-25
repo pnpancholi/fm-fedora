@@ -3,8 +3,8 @@ set -euo pipefail
 
 # PKG: mangowm swaybg swayidle swaylock-effects swayimg slurp grim wlopm
 #      xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk
-#      brightnessctl playerctl pavucontrol wl-clipboard cliphist wl-clip-persist
-#      [spice-vdagent xclip in VMs]
+#      brightnessctl playerctl pavucontrol wl-clipboard cliphist [swaylock if
+#      swaylock-effects is unavailable] [spice-vdagent xclip in VMs]
 # REPO: terra (repos.fyralabs.com; disabled by default, enabled per-command),
 #       COPR pheeef/swaylock-effects
 source "$FM_FEDORA_PATH/lib/helpers.sh"
@@ -56,7 +56,7 @@ if ! sudo dnf install -y --enablerepo='terra*' "mangowm-${MANGO_VERSION}"; then
     sudo dnf install -y --enablerepo='terra*' mangowm
 fi
 
-CLIP_PKGS=(wl-clipboard cliphist wl-clip-persist)
+CLIP_PKGS=(wl-clipboard cliphist)
 if systemd-detect-virt --quiet 2>/dev/null; then
     CLIP_PKGS+=(spice-vdagent xclip)
 fi
@@ -66,27 +66,10 @@ sudo dnf install -y --allowerasing --skip-unavailable \
     xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
     brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
-# swaylock-effects is optional: a broken COPR build must not block the compositor
-if ! sudo dnf install -y --allowerasing swaylock-effects; then
-    warn "swaylock-effects failed to install; continuing without a lock screen"
-fi
-
-command -v mango >/dev/null 2>&1 || { error "mango binary not found after install"; return 1; }
-success "mangowm $(rpm -q --qf '%{VERSION}' mangowm) installed"
-
-# 4. Configs. theme.conf is sourced by config.conf, so write it first.
-write_config_ensure "$HOME/.config/mango/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
-write_config_ensure "$HOME/.config/mango/config.conf" "$(cat "$CONFIG_DIR/config.conf")"
-
-# 5. XDG portals — screen sharing via wlr, everything else via gtk
-write_config_ensure "$HOME/.config/xdg-desktop-portal/mango-portals.conf" "[preferred]
-default=gtk
-org.freedesktop.impl.portal.ScreenCast=wlr
-org.freedesktop.impl.portal.Screenshot=wlr
-"
-
-# 6. swaylock-effects: wallpaper + blur, clock, username, ringless input field
-write_config_ensure "$HOME/.config/swaylock/config" "image=$HOME/Pictures/wallpapers/nordic-wp.png
+# 3b. Lock screen. The pheeef/swaylock-effects COPR only has builds up to
+#     Fedora 41, so newer releases fall back to Fedora's plain swaylock.
+if sudo dnf install -y --allowerasing swaylock-effects 2>/dev/null; then
+    SWAYLOCK_CONFIG="image=$HOME/Pictures/wallpapers/nordic-wp.png
 scaling=fill
 effect-blur=7x5
 clock
@@ -104,6 +87,37 @@ text-clear=
 text-ver=Verifying...
 text-wrong=Wrong
 "
+else
+    warn "swaylock-effects has no build for this Fedora release; using plain swaylock"
+    sudo dnf install -y swaylock
+    SWAYLOCK_CONFIG="color=1e1e1e
+indicator
+indicator-radius=60
+indicator-thickness=4
+ring-color=7aa2f7
+inside-color=1e1e1e
+line-color=1e1e1e
+key-hl-color=7aa2f7
+text-color=ffffff
+"
+fi
+
+command -v mango >/dev/null 2>&1 || { error "mango binary not found after install"; return 1; }
+success "mangowm $(rpm -q --qf '%{VERSION}' mangowm) installed"
+
+# 4. Configs. theme.conf is sourced by config.conf, so write it first.
+write_config_ensure "$HOME/.config/mango/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
+write_config_ensure "$HOME/.config/mango/config.conf" "$(cat "$CONFIG_DIR/config.conf")"
+
+# 5. XDG portals — screen sharing via wlr, everything else via gtk
+write_config_ensure "$HOME/.config/xdg-desktop-portal/mango-portals.conf" "[preferred]
+default=gtk
+org.freedesktop.impl.portal.ScreenCast=wlr
+org.freedesktop.impl.portal.Screenshot=wlr
+"
+
+# 6. Lock screen config (chosen in step 3b)
+write_config_ensure "$HOME/.config/swaylock/config" "$SWAYLOCK_CONFIG"
 
 # 7. environment.d for systemd/user services (all GPUs)
 mkdir -p "$HOME/.config/environment.d"
@@ -158,7 +172,7 @@ verify_mango_install() {
 
     for pkg in mangowm swaybg swayidle swayimg slurp grim wlopm \
                xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
-               brightnessctl playerctl pavucontrol wl-clipboard cliphist wl-clip-persist; do
+               brightnessctl playerctl pavucontrol wl-clipboard cliphist; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
             failed=1
@@ -202,7 +216,7 @@ verify_mango_install() {
     fi
 
     if [[ -f "$HOME/.config/sway/config" ]]; then
-        warn "Legacy ~/.config/sway/config still present (unused, safe to remove)"
+        info "Keeping ~/.config/sway/config for SwayFX rollback"
     fi
 
     if [[ $failed -eq 0 ]]; then
