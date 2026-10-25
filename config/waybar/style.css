@@ -94,15 +94,11 @@ window#waybar {
 
 /* ── 4. Clock ────────────────────────────────────────────────────────────── */
 
+/* Display only — no click, no tooltip, so no hover affordance either. */
 #clock {
     padding: 0 14px;
     color: @fg;
     font-weight: 600;
-    transition: color 150ms ease, background 150ms ease;
-}
-
-#clock:hover {
-    background: @bg-alt;
 }
 
 /* ── 5. Right cluster ────────────────────────────────────────────────────── */

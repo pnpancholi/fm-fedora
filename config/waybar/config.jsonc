@@ -25,21 +25,11 @@
         "on-click": "activate",
         "on-click-right": "deactivate"
     },
-    /* Chrono formats, not strftime. No format-alt on purpose: a click must
-     * not change the format, it pops a calendar via yad instead. */
+    /* Chrono formats, not strftime. Display only: no format-alt, no click,
+     * no tooltip, no calendar. */
     "clock": {
         "format": "{:%A, %d %B %Y - %H:%M}",
-        "on-click": "yad --calendar --undecorated --skip-taskbar --close-on-unfocus --mouse",
-        "tooltip-format": "<tt>{calendar}</tt>",
-        "calendar": {
-            "mode": "month",
-            "weeks-pos": "right"
-        },
-        "actions": {
-            "on-click-right": "mode",
-            "on-scroll-up": "shift_up",
-            "on-scroll-down": "shift_down"
-        }
+        "tooltip": false
     },
     /* Installed by the vicinae package (hicolor 512x512/apps). If the file
      * is absent the image module hides itself, so no exec-if is needed. */
@@ -51,8 +41,8 @@
     },
     "network": {
         "format-wifi": " {essid}",
-        "format-ethernet": "󰀂",
-        "format-disconnected": "󰤮",
+        "format-ethernet": "",
+        "format-disconnected": "",
         "tooltip-format-wifi": "{essid}\n{signaldBm} dBm · {ipaddr}",
         "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
         "tooltip-format-disconnected": "Disconnected",
@@ -61,8 +51,8 @@
     },
     "bluetooth": {
         "format": "",
-        "format-disconnected": "󰂲",
-        "format-off": "󰂲",
+        "format-disconnected": "",
+        "format-off": "",
         "format-no-controller": "",
         "on-click": "ghostty -e bluetoothctl"
     },

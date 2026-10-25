@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: waybar, jetbrains-mono-fonts, nerd-fonts, yad, NetworkManager-tui
+# PKG: waybar, jetbrains-mono-fonts, nerd-fonts, NetworkManager-tui
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing waybar..."
 
 # 1. Install packages (official Fedora repos)
-#    yad        — clock click pops a calendar
-#    nmtui      — network module click opens the NM text UI
-sudo dnf install -y waybar jetbrains-mono-fonts yad NetworkManager-tui
+#    nmtui — network module click opens the NetworkManager text UI
+sudo dnf install -y waybar jetbrains-mono-fonts NetworkManager-tui
 
 # 2. Install Nerd Font for Waybar icons (COPR: che/nerd-fonts)
 sudo rm -f /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:che:jetbrains-mono-nerd-fonts.repo
@@ -35,10 +34,6 @@ verify_waybar_install() {
     fi
     if ! rpm -q nerd-fonts >/dev/null 2>&1; then
         warn "Package missing: nerd-fonts"
-        failed=1
-    fi
-    if ! rpm -q yad >/dev/null 2>&1; then
-        warn "Package missing: yad"
         failed=1
     fi
     if ! rpm -q NetworkManager-tui >/dev/null 2>&1; then
