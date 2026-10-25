@@ -59,12 +59,12 @@
       "buttons-per-row": 2,
       "actions": [
         {
-          "label": " Wi-Fi",
+          "label": " Wi-Fi ›",
           "type": "toggle",
           "active": false
         },
         {
-          "label": " Bluetooth",
+          "label": " Bluetooth ›",
           "type": "toggle",
           "active": false
         },

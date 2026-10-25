@@ -169,8 +169,13 @@
     padding: 8px 6px;
 }
 
+/* GTK has no `text-align` for a button's label — GtkButton centres its label
+ * and CSS can't override the alignment. Equalising every label's width makes
+ * all four text runs start at the same x, which reads as left-aligned; the
+ * longest label is " Do Not Disturb" (~134px at 14px monospace). */
 .widget-buttons-grid.connectivity flowboxchild > button label {
     font-size: 14px;
+    min-width: 140px;
 }
 
 /* ── Sliders (volume / generic) ──────────────────────────────────────────── */
