@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: SwayNotificationCenter, brightnessctl
+# PKG: SwayNotificationCenter, brightnessctl, python3-dbus, python3-gobject
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing SwayNC control center..."
 
 # 1. Install SwayNC (official Fedora repos)
-#    brightnessctl — backs the brightness slider in the control center
-sudo dnf install -y SwayNotificationCenter brightnessctl
+#    brightnessctl      — backs the brightness slider in the control center
+#    python3-dbus +     — only needed by bin/fm-mock-player, the repo-local fake
+#    python3-gobject      MPRIS player used to test the Now Playing tile. The
+#                         app itself never imports them; they are installed here
+#                         so testing needs no manual dnf step.
+sudo dnf install -y SwayNotificationCenter brightnessctl python3-dbus python3-gobject
 
 # 2. Power profiles: Fedora 41+ ships tuned-ppd, which provides ppd-service
 #    and conflicts with power-profiles-daemon. Reuse the existing provider.
@@ -77,6 +81,12 @@ verify_swaync_install() {
     fi
     if ! command -v busctl >/dev/null 2>&1; then
         warn "Binary missing: busctl (systemd)"
+        failed=1
+    fi
+    # bin/fm-mock-player needs these; the rpm can be installed while the python
+    # module is still missing from sys.path, so import it for real.
+    if ! python3 -c 'import dbus, gi' >/dev/null 2>&1; then
+        warn "Python modules missing: dbus or gi (bin/fm-mock-player will not run)"
         failed=1
     fi
     if [[ ! -f "$HOME/.config/swaync/config.json" ]]; then

@@ -44,7 +44,8 @@ try:
 except ImportError as exc:  # pragma: no cover - dependency guard
     sys.exit(
         "fm-mock-player: missing dependency: {}\n"
-        "install with: sudo dnf install python3-dbus python3-gobject".format(exc)
+        "re-run the installer (install/core/05-swaync.sh), or:\n"
+        "  sudo dnf install python3-dbus python3-gobject".format(exc)
     )
 
 BUS_NAME = "org.mpris.MediaPlayer2.fmmock"
