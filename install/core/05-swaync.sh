@@ -40,7 +40,21 @@ CONFIG_DIR="$FM_FEDORA_PATH/config/swaync"
 write_config_ensure "$HOME/.config/swaync/config.json" "$(cat "$CONFIG_DIR/config.json")"
 write_config_ensure "$HOME/.config/swaync/style.css" "$(cat "$CONFIG_DIR/style.css")"
 
-# 5. Verify
+# 5. Reload a running daemon so the new config + CSS land without a logout.
+#    -R re-reads config.json, -rs re-reads style.css. Both are needed because
+#    they are separate files with separate reload paths.
+if pgrep -x swaync >/dev/null 2>&1 && command -v swaync-client >/dev/null 2>&1; then
+    info "Reloading SwayNC..."
+    swaync-client -R >/dev/null 2>&1 || warn "Could not reload SwayNC config"
+    swaync-client -rs >/dev/null 2>&1 || warn "Could not reload SwayNC style"
+elif [[ -n "${WAYLAND_DISPLAY:-}" ]] && command -v swaync >/dev/null 2>&1; then
+    # Not running (crashed, or first upgrade after login) — start it detached
+    # so the control centre and notification daemon are both live.
+    info "Starting SwayNC..."
+    setsid swaync >/dev/null 2>&1 &
+fi
+
+# 6. Verify
 verify_swaync_install() {
     info "Verifying SwayNC installation..."
     local failed=0
