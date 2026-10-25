@@ -1,14 +1,14 @@
 /* Waybar — fm-fedora
  *
- * Tokyo Night, drawn as one flat surface: the bar is painted the same colour as
+ * Tokyo Night drawn as one flat surface: the bar is painted the same colour as
  * mango's theme_bg, so bar and tiling gaps read as a single dark plane.
  *
  * Structure:
  *   1. base surface
  *   2. groups
- *   3. left cluster   (tags)
- *   4. centre         (clock)
- *   5. right cluster  (status, split into three groups by 1px separators)
+ *   3. tags
+ *   4. clock
+ *   5. right cluster (vicinae · network · bluetooth · audio)
  *   6. states
  *   7. tooltip
  */
@@ -75,8 +75,8 @@ window#waybar {
     transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
-/* Only tags in the current view are drawn (ignore-hidden), so in practice this
- * is the current tag; toggled views colour each active tag. */
+/* Only tags in the current view are drawn (ignore-hidden), so this is in
+ * practice the current tag; toggled views colour each active tag. */
 #workspaces button.active {
     color: @accent;
     border-bottom-color: @accent;
@@ -98,72 +98,37 @@ window#waybar {
     padding: 0 14px;
     color: @fg;
     font-weight: 600;
+    transition: color 150ms ease, background 150ms ease;
+}
+
+#clock:hover {
+    background: @bg-alt;
 }
 
 /* ── 5. Right cluster ────────────────────────────────────────────────────── */
 
-#mpris,
+#image,
 #network,
 #bluetooth,
-#pulseaudio,
-#cpu,
-#memory,
-#battery {
+#pulseaudio {
     padding: 0 11px;
     color: @fg;
     transition: color 150ms ease, background 150ms ease;
 }
 
-#mpris:hover,
+#image:hover,
 #network:hover,
 #bluetooth:hover,
-#pulseaudio:hover,
-#cpu:hover,
-#memory:hover,
-#battery:hover {
+#pulseaudio:hover {
     background: @bg-alt;
 }
 
-/* Group separators:
- *   mpris │ network bluetooth pulseaudio │ cpu memory battery notification
- * One 1px rule starts each group; no islands, no background blocks. */
-#network {
-    border-left: 1px solid @border;
-}
-
-#cpu {
-    border-left: 1px solid @border;
-}
-
-#tray {
-    padding: 0 10px;
-}
-
-#tray > .passive {
-    -gtk-icon-effect: dim;
-}
-
-#tray > .needs-attention {
-    -gtk-icon-effect: highlight;
-}
-
-#tray menu {
-    background: @bg-alt;
-    color: @fg;
-    border: 1px solid @border;
+/* Vicinae launcher logo — a little more room than the text modules. */
+#image.vicinae {
+    padding: 0 12px;
 }
 
 /* ── 6. States ───────────────────────────────────────────────────────────── */
-
-#mpris.paused {
-    color: @fg-dim;
-}
-
-/* Nothing playing: collapse the module instead of leaving a padded gap. */
-#mpris.stopped {
-    padding: 0;
-    border: none;
-}
 
 #network.disconnected,
 #network.disabled {
@@ -179,42 +144,9 @@ window#waybar {
     color: @fg-dim;
 }
 
+/* Muted keeps the port's icon (headphone/speaker) and just recedes. */
 #pulseaudio.muted {
     color: @fg-dim;
-}
-
-#cpu.warning,
-#memory.warning {
-    color: @yellow;
-}
-
-#cpu.critical,
-#memory.critical {
-    color: @red;
-}
-
-#battery.warning {
-    color: @yellow;
-}
-
-#battery.critical {
-    color: @red;
-}
-
-/* Last, so a charging battery stays green even below the warning threshold. */
-#battery.charging,
-#battery.plugged {
-    color: @green;
-}
-
-#custom-notification {
-    padding: 0 14px 0 12px;
-    color: @fg;
-}
-
-#custom-notification.dnd-none,
-#custom-notification.dnd-notification {
-    color: @yellow;
 }
 
 /* ── 7. Tooltip ──────────────────────────────────────────────────────────── */

@@ -1,7 +1,7 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 40,
+    "height": 35,
     "spacing": 0,
     "modules-left": [
         "ext/workspaces"
@@ -10,21 +10,14 @@
         "clock"
     ],
     "modules-right": [
-        "mpris",
-        "tray",
+        "image#vicinae",
         "network",
         "bluetooth",
-        "pulseaudio",
-        "cpu",
-        "memory",
-        "battery",
-        "custom/notification"
+        "pulseaudio"
     ],
     /* Waybar 0.15 has no mango/* modules: mango speaks ext-workspace-v1,
-     * which Waybar exposes as ext/workspaces. Names come from mango's tag
-     * presets ("1".."31"). ignore-hidden keeps only the tags in the current
-     * view on the bar — the protocol carries no occupancy information, so
-     * empty-vs-occupied cannot be distinguished anyway. */
+     * which Waybar exposes as ext/workspaces. ignore-hidden keeps only
+     * tags in the current view; the protocol has no occupancy info. */
     "ext/workspaces": {
         "format": "{name}",
         "ignore-hidden": true,
@@ -32,11 +25,11 @@
         "on-click": "activate",
         "on-click-right": "deactivate"
     },
-    /* Clock formats are std::chrono, not strftime: a bare "%H:%M" prints
-     * literally on Waybar >= 0.11. */
+    /* Chrono formats, not strftime. No format-alt on purpose: a click must
+     * not change the format, it pops a calendar via yad instead. */
     "clock": {
         "format": "{:%A, %d %B %Y - %H:%M}",
-        "format-alt": "{:%b %d - %H:%M}",
+        "on-click": "yad --calendar --undecorated --skip-taskbar --close-on-unfocus --mouse",
         "tooltip-format": "<tt>{calendar}</tt>",
         "calendar": {
             "mode": "month",
@@ -48,101 +41,46 @@
             "on-scroll-down": "shift_down"
         }
     },
-    "mpris": {
-        "format": "{player_icon} {artist} - {title}",
-        "format-paused": "⏸ {artist} - {title}",
-        "format-stopped": "",
-        "max-length": 35,
-        "player-icons": {
-            "default": "🎵",
-            "spotify": "",
-            "mpv": "▶",
-            "firefox": ""
-        },
-        "ignored-players": [
-            "chromium"
-        ]
-    },
-    "tray": {
-        "icon-size": 18,
-        "spacing": 4
+    /* Installed by the vicinae package (hicolor 512x512/apps). If the file
+     * is absent the image module hides itself, so no exec-if is needed. */
+    "image#vicinae": {
+        "path": "/usr/share/icons/hicolor/512x512/apps/vicinae.png",
+        "size": 18,
+        "tooltip": false,
+        "on-click": "vicinae toggle"
     },
     "network": {
-        "format-wifi": " {essid} ({signalStrength}%)",
+        "format-wifi": " {essid}",
         "format-ethernet": "󰀂",
         "format-disconnected": "󰤮",
+        "tooltip-format-wifi": "{essid}\n{signaldBm} dBm · {ipaddr}",
+        "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "Disconnected",
         "interval": 10,
-        "on-click": "ghostty -e nmtui",
-        "on-click-right": "gnome-control-center wifi"
+        "on-click": "ghostty -e nmtui"
     },
     "bluetooth": {
         "format": "",
         "format-disconnected": "󰂲",
         "format-off": "󰂲",
-        "on-click": "blueman-manager"
+        "format-no-controller": "",
+        "on-click": "ghostty -e bluetoothctl"
     },
+    /* Icons follow the sink port name: headphone / speaker / headset keys
+     * are matched against getSinkPortName(), so they swap when you plug
+     * headphones in or out. */
     "pulseaudio": {
         "format": "{volume}% {icon}",
-        "format-muted": "",
+        "format-muted": "{volume}% {icon}",
         "format-icons": {
             "headphone": "",
             "headset": "",
-            "default": [
-                "",
-                "",
-                ""
-            ]
+            "speaker": "",
+            "default": ""
         },
+        "tooltip-format": "{desc}",
         "scroll-step": 5,
         "on-click": "pavucontrol",
-        "on-click-right": "pamixer -t"
-    },
-    "cpu": {
-        "format": " {}%",
-        "interval": 5,
-        "on-click": "ghostty -e btop"
-    },
-    "memory": {
-        "format": " {}%",
-        "interval": 5,
-        "on-click": "ghostty -e btop"
-    },
-    "battery": {
-        "format": "{capacity}% {icon}",
-        "format-charging": " {capacity}%",
-        "format-plugged": "",
-        "format-icons": [
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        "states": {
-            "warning": 20,
-            "critical": 10
-        },
-        "on-click": "ghostty -e bash -c 'upower -i /org/freedesktop/UPower/devices/battery_BAT0; read -n1'",
-        "on-click-right": "pavucontrol"
-    },
-    "custom/notification": {
-        "tooltip": false,
-        "format": "{icon}",
-        "format-icons": {
-            "notification": "󱅫",
-            "none": "󰂜",
-            "dnd-notification": "󰂠",
-            "dnd-none": "󰪓",
-            "inhibited-notification": "󰂛",
-            "inhibited-none": "󰪑",
-            "dnd-inhibited-notification": "󰂛",
-            "dnd-inhibited-none": "󰪑"
-        },
-        "return-type": "json",
-        "exec-if": "which swaync-client",
-        "exec": "swaync-client -swb",
-        "on-click": "swaync-client -t -sw",
-        "on-click-right": "swaync-client -d -sw",
-        "escape": true
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     }
 }
