@@ -77,6 +77,22 @@
           "label": " Do Not Disturb",
           "type": "toggle",
           "active": false
+        },
+        {
+          "label": " Update",
+          "type": "normal"
+        },
+        {
+          "label": " Log Out",
+          "type": "normal"
+        },
+        {
+          "label": " Reboot",
+          "type": "normal"
+        },
+        {
+          "label": " Power Off",
+          "type": "normal"
         }
       ]
     }
