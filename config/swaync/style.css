@@ -1,169 +1,249 @@
-/* SwayNC — Tokyo Night theme for fm-fedora */
+/* SwayNC control center — Tokyo Night for fm-fedora
+ *
+ * SwayNC 0.12 is GTK4 and themes itself through :root custom properties
+ * (--cc-bg, --noti-bg, --text-color, --border-radius, ...). Overriding those
+ * once is more durable than chasing individual selectors, so the palette lives
+ * here and the selectors below only cover structure upstream doesn't expose.
+ *
+ * docked: cssPriority is "user" in config.json, so this file wins over the
+ * built-in stylesheet.
+ */
 
-@define-color bg         #1a1b26;
-@define-color bg-alt     #24283b;
-@define-color fg         #c0caf5;
-@define-color fg-dim     #787c99;
-@define-color accent     #7aa2f7;
-@define-color accent-alt #bb9af7;
-@define-color green      #9ece6a;
-@define-color yellow     #e0af68;
-@define-color red        #f7768e;
-@define-color cyan       #7dcfff;
-@define-color border     #292e42;
+:root {
+    /* surfaces */
+    --fm-bg:         #1e1e1e;   /* == waybar bar bg == mango theme_bg */
+    --fm-bg-alt:     #24283b;
+    --fm-bg-hover:   #2a2f45;
+    --fm-border:     #292e42;
+
+    /* text */
+    --fm-fg:         #c0caf5;
+    --fm-fg-dim:     #787c99;
+
+    /* accents */
+    --fm-accent:     #7aa2f7;   /* == mango theme_primary */
+    --fm-red:        #f7768e;
+
+    /* SwayNC's own variables */
+    --cc-bg: var(--fm-bg);
+    --noti-bg: 30, 30, 30;                      /* rgb triple, used as rgba(var(--noti-bg), --noti-bg-alpha) */
+    --noti-bg-alpha: 1;
+    --noti-bg-darker: var(--fm-bg);
+    --noti-bg-hover: var(--fm-bg-alt);
+    --noti-bg-focus: var(--fm-bg-hover);
+    --noti-close-bg: var(--fm-border);
+    --noti-close-bg-hover: var(--fm-red);
+    --noti-border-color: var(--fm-border);
+    --text-color: var(--fm-fg);
+    --text-color-disabled: var(--fm-fg-dim);
+    --bg-selected: var(--fm-accent);
+
+    /* square everywhere: no pills, no islands */
+    --border-radius: 0px;
+
+    --notification-icon-size: 40px;
+    --notification-app-icon-size: 16px;
+    --notification-group-icon-size: 20px;
+    --font-size-body: 13px;
+    --font-size-summary: 13px;
+}
 
 * {
-  font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", monospace;
-  font-size: 13px;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 13px;
 }
+
+/* ── Panel shell ─────────────────────────────────────────────────────────── */
 
 .control-center {
-  background: @bg;
-  border: 1px solid @border;
-  border-radius: 0;
-  color: @fg;
+    background: var(--cc-bg);
+    color: var(--text-color);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
 }
 
-.control-center-list {
-  background: transparent;
+.widget {
+    margin: 0;
 }
 
-.control-center-list-placeholder {
-  color: @fg-dim;
+/* ── Section headers (label#quick-settings & co) ─────────────────────────── */
+/* baseWidget adds .widget-label plus the raw suffix as a class, e.g.
+ * .quick-settings, so a single header can be singled out later. */
+
+.widget-label {
+    margin: 16px 12px 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--fm-border);
 }
+
+.widget-label > label {
+    color: var(--fm-fg-dim);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* ── Title / DND ─────────────────────────────────────────────────────────── */
 
 .widget-title {
-  color: @fg;
-  margin: 8px;
-  font-size: 15px;
+    color: var(--fm-fg);
+    margin: 12px 12px 4px;
+    font-size: 15px;
 }
 
 .widget-title > button {
-  background: @bg-alt;
-  color: @fg;
-  border: 1px solid @border;
-  border-radius: 0;
+    background: var(--fm-bg-alt);
+    color: var(--fm-fg);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
+    padding: 2px 10px;
 }
 
 .widget-title > button:hover {
-  background: @accent;
-  color: @bg;
+    background: var(--fm-accent);
+    color: var(--fm-bg);
 }
 
 .widget-dnd {
-  color: @fg;
-  margin: 8px;
+    color: var(--fm-fg);
+    margin: 8px 12px;
 }
 
 .widget-dnd > switch {
-  background: @bg-alt;
-  border: 1px solid @border;
-  border-radius: 0;
+    background: var(--fm-bg-alt);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
 }
 
 .widget-dnd > switch:checked {
-  background: @accent;
+    background: var(--fm-accent);
 }
 
 .widget-dnd > switch slider {
-  background: @fg;
-  border-radius: 0;
+    background: var(--fm-fg);
+    border-radius: 0;
 }
+
+/* ── Quick settings grid ─────────────────────────────────────────────────── */
 
 .widget-buttons-grid {
-  padding: 4px;
-  margin: 4px;
+    margin: 0 8px;
+    padding: 0;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button {
-  background: @bg-alt;
-  color: @fg;
-  border: 1px solid @border;
-  border-radius: 0;
-  padding: 8px 6px;
-  min-height: 40px;
+.widget-buttons-grid flowboxchild > button {
+    background: var(--fm-bg-alt);
+    color: var(--fm-fg);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
+    min-height: 40px;
+    padding: 6px;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button:hover {
-  background: @border;
+.widget-buttons-grid flowboxchild > button:hover {
+    background: var(--fm-bg-hover);
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked {
-  background: @accent;
-  color: @bg;
+.widget-buttons-grid flowboxchild > button.toggle:checked {
+    background: var(--fm-accent);
+    color: var(--fm-bg);
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked > label {
-  color: @bg;
-}
+/* ── Sliders (volume / generic) ──────────────────────────────────────────── */
 
 .widget-volume,
+.widget-slider,
 .widget-backlight {
-  background: @bg-alt;
-  border: 1px solid @border;
-  border-radius: 0;
-  margin: 6px 8px;
-  padding: 4px 8px;
-  color: @fg;
+    background: var(--fm-bg-alt);
+    color: var(--fm-fg);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
+    margin: 6px 8px;
+    padding: 4px 8px;
 }
 
 .widget-volume label,
+.widget-slider label,
 .widget-backlight label {
-  color: @fg-dim;
+    color: var(--fm-fg-dim);
 }
 
 .widget-volume trough,
+.widget-slider trough,
 .widget-backlight trough {
-  background: @border;
-  border-radius: 0;
-  min-height: 6px;
+    background: var(--fm-border);
+    border-radius: 0;
+    min-height: 6px;
 }
 
 .widget-volume highlight,
+.widget-slider highlight,
 .widget-backlight highlight {
-  background: @accent;
-  border-radius: 0;
+    background: var(--fm-accent);
+    border-radius: 0;
 }
+
+/* ── MPRIS / now playing ─────────────────────────────────────────────────── */
+
+.widget-mpris {
+    background: var(--fm-bg-alt);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
+    margin: 6px 8px;
+    padding: 6px;
+    color: var(--fm-fg);
+}
+
+.widget-mpris-title {
+    font-weight: 700;
+}
+
+.widget-mpris-subtitle {
+    color: var(--fm-fg-dim);
+}
+
+/* ── Notifications ───────────────────────────────────────────────────────── */
 
 .notification-row {
-  outline: none;
+    background: transparent;
+    outline: none;
 }
 
+.notification-background,
 .notification {
-  background: @bg-alt;
-  border: 1px solid @border;
-  border-radius: 0;
-  margin: 4px 8px;
+    background: var(--fm-bg-alt);
+    border: 1px solid var(--fm-border);
+    border-radius: 0;
+    margin: 4px 8px;
 }
 
 .notification-content {
-  color: @fg;
+    color: var(--fm-fg);
 }
 
 .summary {
-  color: @fg;
-  font-weight: bold;
+    color: var(--fm-fg);
+    font-weight: 700;
 }
 
 .body {
-  color: @fg-dim;
+    color: var(--fm-fg-dim);
 }
 
 .time {
-  color: @fg-dim;
-}
-
-.close-button {
-  background: @bg-alt;
-  color: @fg-dim;
-  border-radius: 0;
-}
-
-.close-button:hover {
-  background: @red;
-  color: @bg;
+    color: var(--fm-fg-dim);
 }
 
 .notification.critical {
-  border-color: @red;
+    border-color: var(--fm-red);
+}
+
+.close-button {
+    background: var(--fm-border);
+    color: var(--fm-fg-dim);
+    border-radius: 0;
+}
+
+.close-button:hover {
+    background: var(--fm-red);
+    color: var(--fm-bg);
 }

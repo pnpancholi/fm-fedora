@@ -81,10 +81,11 @@
         "on-click": "pavucontrol",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     },
-    /* Hamburger, rightmost. Presentation only for now; the notification
-     * centre binding goes here later: "on-click": "swaync-client -t -sw". */
+    /* Hamburger, rightmost: opens the SwayNC control center. -sw skips
+     * swaync-client waiting for the panel to appear. */
     "custom/menu": {
         "format": "",
-        "tooltip": false
+        "tooltip": false,
+        "on-click": "swaync-client -t -sw"
     }
 }

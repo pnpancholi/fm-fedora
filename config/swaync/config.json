@@ -28,23 +28,19 @@
   "script-fail-notify": true,
   "text-empty": "No notifications",
   "widgets": [
-    "backlight",
-    "volume",
-    "label",
-    "notifications"
+    "label#quick-settings",
+    "label#now-playing",
+    "label#notifications-header"
   ],
   "widget-config": {
-    "backlight": {
-      "label": "Brightness"
+    "label#quick-settings": {
+      "text": "Quick Settings"
     },
-    "volume": {
-      "label": "Volume"
+    "label#now-playing": {
+      "text": "Now Playing"
     },
-    "label": {
+    "label#notifications-header": {
       "text": "Notifications"
-    },
-    "notifications": {
-      "vexpand": true
     }
   }
 }
