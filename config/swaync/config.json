@@ -29,12 +29,24 @@
   "text-empty": "No notifications",
   "widgets": [
     "label#quick-settings",
+    "slider#brightness",
+    "volume",
     "label#now-playing",
     "label#notifications-header"
   ],
   "widget-config": {
     "label#quick-settings": {
       "text": "Quick Settings"
+    },
+    "slider#brightness": {
+      "label": "Brightness",
+      "cmd_getter": "brightnessctl -m get | cut -d, -f4 | tr -d %",
+      "cmd_setter": "brightnessctl -q set $value%",
+      "min": 1
+    },
+    "volume": {
+      "label": "Volume",
+      "show-per-app": false
     },
     "label#now-playing": {
       "text": "Now Playing"

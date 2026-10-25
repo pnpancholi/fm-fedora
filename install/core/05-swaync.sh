@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: SwayNotificationCenter
+# PKG: SwayNotificationCenter, brightnessctl
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing SwayNC control center..."
 
 # 1. Install SwayNC (official Fedora repos)
-sudo dnf install -y SwayNotificationCenter
+#    brightnessctl — backs the brightness slider in the control center
+sudo dnf install -y SwayNotificationCenter brightnessctl
 
 # 2. Power profiles: Fedora 41+ ships tuned-ppd, which provides ppd-service
 #    and conflicts with power-profiles-daemon. Reuse the existing provider.
@@ -60,6 +61,10 @@ verify_swaync_install() {
     local failed=0
     if ! rpm -q SwayNotificationCenter >/dev/null 2>&1; then
         warn "Package missing: SwayNotificationCenter"
+        failed=1
+    fi
+    if ! rpm -q brightnessctl >/dev/null 2>&1; then
+        warn "Package missing: brightnessctl"
         failed=1
     fi
     if ! command -v swaync >/dev/null 2>&1; then
