@@ -28,8 +28,8 @@ fm_upgrade() {
         exit 1
     fi
     ( while true; do sudo -v; sleep 60; done ) &
-    local sudo_keepalive_pid=$!
-    trap 'kill "$sudo_keepalive_pid" 2>/dev/null' EXIT
+    sudo_keepalive_pid=$!
+    trap 'kill "${sudo_keepalive_pid:-}" 2>/dev/null' EXIT
 
     git -C "$FM_FEDORA_PATH" pull --quiet
     source "$FM_FEDORA_PATH/install.sh"

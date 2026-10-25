@@ -61,7 +61,7 @@ if systemd-detect-virt --quiet 2>/dev/null; then
     CLIP_PKGS+=(spice-vdagent xclip)
 fi
 
-sudo dnf install -y --skip-unavailable \
+sudo dnf install -y --allowerasing --skip-unavailable \
     swaybg swayidle swaylock-effects swayimg slurp grim wlopm \
     xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
     brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
