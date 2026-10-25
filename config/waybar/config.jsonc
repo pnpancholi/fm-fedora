@@ -3,15 +3,16 @@
     "position": "top",
     "height": 28,
     "spacing": 4,
-    "modules-left": ["sway/workspaces", "sway/window"],
+    "modules-left": ["mango/workspaces", "mango/layout", "mango/window"],
     "modules-center": ["clock"],
     "modules-right": ["mpris", "tray", "memory", "cpu", "network", "bluetooth", "pulseaudio", "battery", "custom/notification"],
 
-    "sway/workspaces": {
-        "disable-scroll": true,
-        "all-outputs": true,
-        "persistent-workspaces": false,
+    "mango/workspaces": {
         "format": "{icon}",
+        "hide-empty": true,
+        "on-click": "activate",
+        "on-click-right": "toggle",
+        "overview-label": "OVERVIEW",
         "format-icons": {
             "active": "■",
             "inactive": "□",
@@ -19,9 +20,13 @@
         }
     },
 
-    "sway/window": {
+    "mango/window": {
         "format": "{}",
         "max-length": 45
+    },
+
+    "mango/layout": {
+        "format": "{}"
     },
 
     "clock": {

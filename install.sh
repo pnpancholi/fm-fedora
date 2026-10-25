@@ -10,6 +10,15 @@ print_banner
 
 # Install fm CLI and helpers to PATH
 mkdir -p "$HOME/.local/bin"
+
+# Prune symlinks left behind by tools that no longer exist in bin/
+for link in "$HOME/.local/bin"/*; do
+    [[ -L "$link" && ! -e "$link" ]] || continue
+    case "$(readlink "$link")" in
+        "$FM_FEDORA_PATH"/*) rm -f "$link" ;;
+    esac
+done
+
 for f in "$FM_FEDORA_PATH"/bin/*; do
     ln -sf "$f" "$HOME/.local/bin/$(basename "$f")"
 done
@@ -26,7 +35,7 @@ info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$
 # Core modules
 for script in \
     "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
-    "$FM_FEDORA_PATH"/install/core/02-swayfx.sh \
+    "$FM_FEDORA_PATH"/install/core/02-mango.sh \
     "$FM_FEDORA_PATH"/install/core/03-waybar.sh \
     "$FM_FEDORA_PATH"/install/core/04-ghostty.sh \
     "$FM_FEDORA_PATH"/install/core/05-swaync.sh \

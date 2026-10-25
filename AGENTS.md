@@ -16,16 +16,17 @@ fm-fedora/
 ├── install/
 │   └── core/
 │       ├── 01-dnf-setup.sh # DNF tuning, RPM Fusion, system upgrade
-│       ├── 02-swayfx.sh    # SwayFX compositor, config, wallpaper, NVIDIA detect
+│       ├── 02-mango.sh     # mango compositor, config, wallpaper, NVIDIA detect
 │       ├── 03-waybar.sh    # Waybar + config/style
 │       ├── 04-ghostty.sh   # Ghostty terminal + config
 │       └── 05-swaync.sh    # SwayNC control center
 ├── assets/
 │   ├── fm-fedora-banner.png
 │   └── nordic-wp.png
-├── bin/                    # CLI tools (fm, fm-create-sway-desktop)
+├── bin/                    # CLI tools (fm)
 ├── config/
-│   ├── sway/config         # SwayFX config
+│   ├── mango/config.conf   # mango compositor config
+│   ├── mango/theme.conf    # mango color tokens
 │   ├── waybar/             # Waybar config.jsonc + style.css
 │   ├── ghostty/config      # Ghostty config
 │   └── swaync/             # SwayNC config.json + style.css
@@ -37,7 +38,7 @@ fm-fedora/
 
 ## Conventions
 - **Module naming**: `install/core/NN-name.sh` (zero-padded numeric prefix)
-- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`
+- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`
 - **Logging**: Use `info`, `success`, `warn`, `error` from `lib/helpers.sh`
 - **Privilege escalation**: No root execution; sudo only in modules, prompted once via `boot.sh` keepalive
 - **Shell target**: Bash 4+ (prefer POSIX where practical)
@@ -53,12 +54,12 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 
 ## Key Decisions (see DECISIONS.md)
 - **Fedora** — Cutting-edge packages, Wayland-first, strong upstream, RPM Fusion
-- **SwayFX** — Sway fork with effects (blur, shadows, animations), i3-compatible, COPR swayfx/swayfx, universal GPU
+- **mango (mangowm)** — dwl-derived, wlroots + scenefx, dynamic dwindle tiling, per-event bezier animations, discrete tags, universal GPU, Terra repo (pinned)
 - **Ghostty** — GPU-accelerated terminal, COPR scottames/ghostty, modern defaults
 - **Bash modules** — Zero deps, linear execution, easy to fork/extend
 
 ## Current State
-- **Done**: `01-dnf-setup.sh`, `02-swayfx.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, bootstrap, installer, helpers, core lib
+- **Done**: `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, bootstrap, installer, helpers, core lib
 - **In Progress**: Documentation, agent context files
 - **Planned**: `05-packages.sh` (CLI/dev tools), `06-vicinae.sh` (optional alternative terminal)
 
@@ -78,9 +79,15 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 ## Gotchas / Tribal Knowledge
 - `boot.sh` clones to `~/.local/share/fm-fedora` by default (override via `FM_FEDORA_HOME`)
 - RPM Fusion URLs use `$(rpm -E %fedora)` — version-agnostic
-- SwayFX from COPR `swayfx/swayfx` (not vanilla Sway, not Hyprland)
+- mango from **Terra** (`repos.fyralabs.com`) — no Fedora package, no first-party COPR. The repo is installed with `enabled=0` and enabled per-command (`--enablerepo='terra*'`), so routine `dnf upgrade` never touches it
+- `02-mango.sh` **aborts** if Terra does not declare `gpgcheck=1` — do not weaken that gate
+- `MANGO_VERSION` is pinned deliberately; bump it only after checking the config still parses
+- mango has **9 tags** (mask `1`–`9`). `SUPER+0` is `toggleoverview`, not workspace 10
+- `swaymsg` does not exist here: idle DPMS uses `wlopm`, exit uses `quit`
+- mango ships `/usr/share/wayland-sessions/mango.desktop` itself — no desktop-file hack needed
+- Config is validated offline with `mango -c <file> -p`
 - swaylock-effects from COPR `pheeef/swaylock-effects` (replaces `swaylock`); config at `~/.config/swaylock/config` = wallpaper + blur, clock, username as datestr, ringless input field
 - Ghostty from COPR `scottames/ghostty`
 - Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules
-- Wallpaper: `assets/nordic-wp.png` copied to `~/Pictures/wallpapers/` by `02-swayfx.sh`
+- Wallpaper: `assets/nordic-wp.png` copied to `~/Pictures/wallpapers/` by `02-mango.sh`

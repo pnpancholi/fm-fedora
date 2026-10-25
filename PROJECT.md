@@ -4,21 +4,21 @@
 
 ## Stack
 - **OS:** Fedora Linux (current stable)
-- **Compositor:** SwayFX (Sway fork with effects, i3-compatible, via COPR swayfx/swayfx)
+- **Compositor:** mango (mangowm — dwl/wlroots + scenefx, dynamic tiling, animated, via Terra repo)
 - **Terminal:** Ghostty (GPU-accelerated, via COPR scottames/ghostty)
-- **Bar:** Waybar (status bar, IPC with Sway, Fedora repos)
+- **Bar:** Waybar (status bar, IPC with mango via `mango/*` modules, Fedora repos)
 - **Language:** Bash 4+ modules, zero external deps
 
 ## Structure
 ```
-boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-swayfx.sh, 03-waybar.sh, 04-ghostty.sh, 05-swaync.sh...
+boot.sh → install.sh → install/core/01-dnf-setup.sh, 02-mango.sh, 03-waybar.sh, 04-ghostty.sh, 05-swaync.sh...
 lib/helpers.sh — logging + banner
 lib/fm-core.sh — shared functions
 ```
 
 ## Current State
 - `01-dnf-setup.sh`: DNF tuning, RPM Fusion, system upgrade
-- `02-swayfx.sh`: SwayFX compositor, config, wallpaper, NVIDIA auto-detect
+- `02-mango.sh`: mango compositor, config, wallpaper, NVIDIA auto-detect
 - `03-waybar.sh`: Waybar + config/style
 - `04-ghostty.sh`: Ghostty terminal + config
 - `05-swaync.sh`: SwayNC control center (DND, Wi-Fi, Bluetooth, power, battery mode)
@@ -31,7 +31,7 @@ lib/fm-core.sh — shared functions
 | Topic | Decision |
 |-------|----------|
 | Distro | Fedora — cutting-edge, Wayland-first, strong upstream |
-| Compositor | SwayFX — i3-compatible, effects built-in, COPR swayfx/swayfx, universal GPU |
+| Compositor | mango — dynamic dwindle tiling, per-event animations, scenefx effects, wlroots (universal GPU) |
 | Terminal | Ghostty — GPU-accelerated, COPR scottames/ghostty, modern defaults |
 | Language | Bash — zero deps, transparent, forkable |
 
