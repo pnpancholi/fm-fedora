@@ -62,9 +62,14 @@ if systemd-detect-virt --quiet 2>/dev/null; then
 fi
 
 sudo dnf install -y --allowerasing --skip-unavailable \
-    swaybg swayidle swaylock-effects swayimg slurp grim wlopm \
+    swaybg swayidle swayimg slurp grim wlopm \
     xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
     brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
+
+# swaylock-effects is optional: a broken COPR build must not block the compositor
+if ! sudo dnf install -y --allowerasing swaylock-effects; then
+    warn "swaylock-effects failed to install; continuing without a lock screen"
+fi
 
 command -v mango >/dev/null 2>&1 || { error "mango binary not found after install"; return 1; }
 success "mangowm $(rpm -q --qf '%{VERSION}' mangowm) installed"
@@ -151,7 +156,7 @@ verify_mango_install() {
 
     local failed=0
 
-    for pkg in mangowm swaybg swayidle swaylock-effects swayimg slurp grim wlopm \
+    for pkg in mangowm swaybg swayidle swayimg slurp grim wlopm \
                xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
                brightnessctl playerctl pavucontrol wl-clipboard cliphist wl-clip-persist; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
