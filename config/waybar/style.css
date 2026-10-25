@@ -75,27 +75,21 @@ window#waybar {
     transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
-/* Not part of the current view: still clickable, just receding. */
-#workspaces button.hidden {
-    opacity: 0.55;
-}
-
+/* Only tags in the current view are drawn (ignore-hidden), so in practice this
+ * is the current tag; toggled views colour each active tag. */
 #workspaces button.active {
     color: @accent;
     border-bottom-color: @accent;
-    opacity: 1;
 }
 
 #workspaces button.urgent {
     color: @red;
     border-bottom-color: @red;
-    opacity: 1;
 }
 
 #workspaces button:hover {
     background: @bg-alt;
     color: @fg;
-    opacity: 1;
 }
 
 /* ── 4. Clock ────────────────────────────────────────────────────────────── */

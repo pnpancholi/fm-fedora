@@ -22,11 +22,12 @@
     ],
     /* Waybar 0.15 has no mango/* modules: mango speaks ext-workspace-v1,
      * which Waybar exposes as ext/workspaces. Names come from mango's tag
-     * presets ("1".."31"); the protocol carries no occupancy info, so all
-     * nine tags are always drawn and inactive ones dim via .hidden. */
+     * presets ("1".."31"). ignore-hidden keeps only the tags in the current
+     * view on the bar — the protocol carries no occupancy information, so
+     * empty-vs-occupied cannot be distinguished anyway. */
     "ext/workspaces": {
         "format": "{name}",
-        "ignore-hidden": false,
+        "ignore-hidden": true,
         "sort-by-name": true,
         "on-click": "activate",
         "on-click-right": "deactivate"
@@ -34,8 +35,8 @@
     /* Clock formats are std::chrono, not strftime: a bare "%H:%M" prints
      * literally on Waybar >= 0.11. */
     "clock": {
-        "format": "{:%H:%M}",
-        "format-alt": "{:%a %d %b %Y}",
+        "format": "{:%A, %d %B %Y - %H:%M}",
+        "format-alt": "{:%b %d - %H:%M}",
         "tooltip-format": "<tt>{calendar}</tt>",
         "calendar": {
             "mode": "month",
