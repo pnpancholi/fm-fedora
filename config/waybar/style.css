@@ -57,14 +57,16 @@ window#waybar {
 /* ── 3. Tags ─────────────────────────────────────────────────────────────── */
 
 #workspaces {
-    padding: 0 8px;
+    padding: 0 6px;
 }
 
 /* Reset GTK's button chrome explicitly — `all: initial` is not reliable GTK CSS. */
 #workspaces button {
-    padding: 0 10px;
+    /* Each tag is padding + glyph only: no min-width floor, so single digits
+     * stay tight. Bump `padding` up if you want more air per tag. */
+    padding: 0 7px;
     margin: 0;
-    min-width: 16px;
+    min-width: 0;
     background-color: transparent;
     color: @fg-dim;
     border: none;
