@@ -39,7 +39,8 @@ for script in \
     "$FM_FEDORA_PATH"/install/core/03-waybar.sh \
     "$FM_FEDORA_PATH"/install/core/04-ghostty.sh \
     "$FM_FEDORA_PATH"/install/core/05-swaync.sh \
-    "$FM_FEDORA_PATH"/install/core/06-vicinae.sh; do
+    "$FM_FEDORA_PATH"/install/core/06-vicinae.sh \
+    "$FM_FEDORA_PATH"/install/core/07-gtklock.sh; do
     info "-- $(basename "$script")"
     source "$script"
 done

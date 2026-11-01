@@ -1,0 +1,166 @@
+/* gtklock — fm-fedora
+ *
+ * Tokyo Night lock screen. Loaded at a higher CSS priority than gtklock's
+ * built-in sizing rules, so these selectors only add colour and chrome;
+ * gtklock keeps its large-clock-when-idle / smaller-clock-when-typing layout.
+ */
+
+/* ── Palette (matches Waybar / SwayNC) ──────────────────────────────────── */
+
+@define-color bg          #1e1e1e;
+@define-color bg-alt      #24283b;
+@define-color fg          #c0caf5;
+@define-color fg-dim      #787c99;
+@define-color accent      #7aa2f7;
+@define-color accent-hover #89b4fa;
+@define-color yellow      #e0af68;
+@define-color red         #f7768e;
+@define-color border      #292e42;
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+
+window,
+#clock-label,
+#date-label,
+#user-label,
+#input-label,
+#input-field,
+#unlock-button,
+#error-label,
+#warning-label,
+#message-box {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+}
+
+* {
+    text-shadow: none;
+    box-shadow: none;
+}
+
+window {
+    background-color: @bg;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ── Clock / date / username ─────────────────────────────────────────────── */
+
+window #clock-label,
+window #date-label,
+#user-label {
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+}
+
+window #clock-label {
+    color: @fg;
+}
+
+window.focused:not(.hidden) #clock-label {
+    color: @fg;
+}
+
+window #date-label {
+    color: @fg-dim;
+}
+
+window.focused:not(.hidden) #date-label {
+    color: @fg-dim;
+}
+
+#user-label {
+    color: @accent;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+window.focused:not(.hidden) #user-label {
+    font-size: 18px;
+}
+
+/* ── Password row ────────────────────────────────────────────────────────── */
+
+#input-label {
+    color: @fg-dim;
+    font-size: 14px;
+}
+
+#input-field {
+    background-color: @bg-alt;
+    color: @fg;
+    border: 1px solid @border;
+    border-radius: 6px;
+    padding: 10px 14px;
+    min-height: 24px;
+}
+
+#input-field:focus {
+    border-color: @accent;
+}
+
+#input-field image {
+    color: @fg-dim;
+}
+
+#input-field image:hover {
+    color: @accent;
+}
+
+#unlock-button {
+    background-color: @accent;
+    background-image: none;
+    color: @bg;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    min-height: 24px;
+    font-weight: bold;
+}
+
+#unlock-button:hover {
+    background-color: @accent-hover;
+}
+
+#unlock-button:active {
+    background-color: @accent;
+}
+
+#unlock-button:disabled {
+    background-color: @bg-alt;
+    color: @fg-dim;
+}
+
+/* ── Feedback ────────────────────────────────────────────────────────────── */
+
+#error-label {
+    color: @red;
+    font-size: 13px;
+}
+
+#warning-label {
+    color: @yellow;
+    font-size: 13px;
+}
+
+#message-scrolled-window,
+#message-scrolled-window viewport {
+    background-color: transparent;
+}
+
+#message-box {
+    color: @fg;
+    font-size: 13px;
+}
+
+#message-box infobar {
+    background-color: @bg-alt;
+    color: @fg;
+}
+
+#message-box infobar label {
+    color: @fg;
+}
+
+#message-box infobar button {
+    color: @fg-dim;
+}

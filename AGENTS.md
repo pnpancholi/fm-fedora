@@ -19,16 +19,20 @@ fm-fedora/
 │       ├── 02-mango.sh     # mango compositor, config, wallpaper, NVIDIA detect
 │       ├── 03-waybar.sh    # Waybar + config/style
 │       ├── 04-ghostty.sh   # Ghostty terminal + config
-│       └── 05-swaync.sh    # SwayNC control center
+│       ├── 05-swaync.sh    # SwayNC control center
+│       ├── 06-vicinae.sh   # Vicinae launcher
+│       └── 07-gtklock.sh   # gtklock lock screen + config
 ├── assets/
 │   ├── fm-fedora-banner.png
-│   └── nordic-wp.png
+│   ├── nordic-wp.png
+│   └── nordic-wp-lock.jpg
 ├── bin/                    # CLI tools (fm)
 ├── config/
 │   ├── mango/config.conf   # mango compositor config
 │   ├── mango/theme.conf    # mango color tokens
 │   ├── waybar/             # Waybar config.jsonc + style.css
 │   ├── ghostty/config      # Ghostty config
+│   ├── gtklock/            # gtklock config.ini + layout.xml + style.css
 │   └── swaync/             # SwayNC config.json + style.css
 ├── AGENTS.md
 ├── PROJECT.md
@@ -38,7 +42,7 @@ fm-fedora/
 
 ## Conventions
 - **Module naming**: `install/core/NN-name.sh` (zero-padded numeric prefix)
-- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`
+- **Execution order**: Explicit list in `install.sh` — `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, `06-vicinae.sh`, `07-gtklock.sh`
 - **Logging**: Use `info`, `success`, `warn`, `error` from `lib/helpers.sh`
 - **Privilege escalation**: No root execution; sudo only in modules, prompted once via `boot.sh` keepalive
 - **Shell target**: Bash 4+ (prefer POSIX where practical)
@@ -56,12 +60,13 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - **Fedora** — Cutting-edge packages, Wayland-first, strong upstream, RPM Fusion
 - **mango (mangowm)** — dwl-derived, wlroots + scenefx, dynamic dwindle tiling, per-event bezier animations, discrete tags, universal GPU, Terra repo (pinned)
 - **Ghostty** — GPU-accelerated terminal, COPR scottames/ghostty, modern defaults
+- **gtklock** — official Fedora lock screen package, GTK3, PAM, `ext-session-lock`; clock/date/username
 - **Bash modules** — Zero deps, linear execution, easy to fork/extend
 
 ## Current State
-- **Done**: `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, bootstrap, installer, helpers, core lib
+- **Done**: `01-dnf-setup.sh`, `02-mango.sh`, `03-waybar.sh`, `04-ghostty.sh`, `05-swaync.sh`, `06-vicinae.sh`, `07-gtklock.sh`, bootstrap, installer, helpers, core lib
 - **In Progress**: Documentation, agent context files
-- **Planned**: `05-packages.sh` (CLI/dev tools), `06-vicinae.sh` (optional alternative terminal)
+- **Planned**: CLI/dev tooling module
 
 ## Environment / Requirements
 - Fedora Linux (current release)
@@ -87,8 +92,9 @@ A professional Linux workstation setup — secure, fast, and productive. Strong 
 - `swaymsg` does not exist here: idle DPMS uses `wlopm`, exit uses `quit`
 - mango ships `/usr/share/wayland-sessions/mango.desktop` itself — no desktop-file hack needed
 - Config is validated offline with `mango -c <file> -p`
-- Lock screen uses Fedora's `swaylock` (the `pheeef/swaylock-effects` COPR is abandoned — no builds past Fedora 41); config at `~/.config/swaylock/config`
+- Lock screen is **gtklock** (Fedora package; GTK3; PAM; `ext-session-lock`). Config lives in `~/.config/gtklock/`; lock with `SUPER+Escape`. `swayidle` and `before-sleep` call `gtklock`. The username is display-only — PAM authenticates the current user, and gtklock cannot switch users.
+- gtklock upstream is looking for a new maintainer; the Fedora package is maintained. Keep the custom layout close to upstream so required widget IDs/signals stay intact.
 - Ghostty from COPR `scottames/ghostty`
 - Nerd Font from COPR `che/nerd-fonts` (package: `nerd-fonts`)
 - Modules are sourced (not executed) — variables/functions leak between modules
-- Wallpaper: `assets/nordic-wp.png` copied to `~/Pictures/wallpapers/` by `02-mango.sh`
+- Wallpaper: `assets/nordic-wp.png` copied to `~/Pictures/wallpapers/` by `02-mango.sh`; `assets/nordic-wp-lock.jpg` copied by `07-gtklock.sh`

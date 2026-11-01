@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-*Last updated: 2026-10-25*
+*Last updated: 2026-11-01*
 
 Each record follows: **Context → Decision → Consequences**
 
@@ -78,7 +78,6 @@ Options rejected:
 - 🗑️ `bin/fm-create-sway-desktop` removed — mango ships its own `/usr/share/wayland-sessions/mango.desktop`
 
 ---
-
 ## ADR-004: `fm upgrade` never upgrades a live session; the bar is session-owned
 
 **Date:** 2026-11-01
