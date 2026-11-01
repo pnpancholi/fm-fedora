@@ -94,3 +94,23 @@ The obvious alternative — supervise the bar with a restart loop or systemd use
 - ✅ `fm upgrade` prints the skip and the TTY command, so it isn't silently doing less
 - ⚠️ `fm upgrade` alone no longer brings system packages up to date; system updates are a separate, deliberate step
 - ⚠️ A Waybar crash from any other cause still needs a logout. Accepted: the bar is part of the session, not a supervised daemon
+
+---
+
+## ADR-005: Panel switches are one helper; airplane state is derived, not stored
+
+**Date:** 2026-11-01
+
+**Context:** The Quick Settings panel needs Airplane and Do Not Disturb as real switches — state visible in the panel, mirrored on the bar, and a notification for every flip. DND already belongs to SwayNC and is readable from it. Airplane has no unprivileged switch on Linux: `/dev/rfkill` is root-only, so `rfkill block all` means either `sudo` (unusable from a panel click) or a `pkexec` password prompt for what is meant to be a one-click toggle.
+
+**Decision:** One helper, `bin/fm-toggle`, with three modes — flip, `state` (prints `true`/`false` for SwayNC's `update-command`), and `bar` (one JSON line for Waybar). DND is `swaync-client -dn`/`-df`; airplane is `nmcli radio all on|off` plus `bluetoothctl power on|off`, both allowed by polkit for the active session with no prompt. Airplane state is *derived* — on means every radio we can switch is already off — rather than stored in a file of our own.
+
+Two upstream behaviours shaped this and are worth not rediscovering: SwayNC's `buttons-grid` runs `update-command` every time the panel opens (so no polling loop), and it exports `SWAYNC_TOGGLE_STATE` to `command` after flipping the button (so the helper applies the requested state instead of flipping again).
+
+**Consequences:**
+- ✅ No password prompt, no stored state file that can drift from the system
+- ✅ Panel, bar and any future keybind all read the same helper — one source of truth
+- ✅ Failures are visible: a `critical` notification plus `journalctl -t fm-toggle`
+- ⚠️ Derived state: turning Wi-Fi and Bluetooth off by hand also reads as "airplane on". Honest — all radios *are* off — but it can look like the switch acted on its own
+- ⚠️ Switching airplane off turns every radio on; it does not restore the previous mix. GNOME remembers, we do not
+- ⚠️ The "Do Not Disturb on" confirmation needs the `SWAYNC_BYPASS_DND` hint, or DND suppresses its own toast

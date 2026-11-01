@@ -11,6 +11,8 @@
     ],
     "modules-right": [
         "image#vicinae",
+        "custom/airplane",
+        "custom/dnd",
         "network",
         "bluetooth",
         "pulseaudio",
@@ -63,6 +65,30 @@
         "format-off": "",
         "format-no-controller": "",
         "on-click": "sh -c '$HOME/.local/bin/fm-settings bluetooth'"
+    },
+    /* Mode switches, left of the radios they turn off. fm-toggle prints one
+     * Waybar JSON line, so state is carried by colour like network/bluetooth:
+     * primary when on, muted when off.
+     *
+     * interval is only a safety net for changes made elsewhere (Wi-Fi turned
+     * off in Settings changes airplane state). Clicks -- from here or from the
+     * control centre -- reach the bar immediately because fm-toggle pokes
+     * signal 8, which is why both modules declare the same number. */
+    "custom/airplane": {
+        "exec": "$HOME/.local/bin/fm-toggle airplane bar",
+        "return-type": "json",
+        "interval": 10,
+        "signal": 8,
+        "tooltip": true,
+        "on-click": "$HOME/.local/bin/fm-toggle airplane"
+    },
+    "custom/dnd": {
+        "exec": "$HOME/.local/bin/fm-toggle dnd bar",
+        "return-type": "json",
+        "interval": 10,
+        "signal": 8,
+        "tooltip": true,
+        "on-click": "$HOME/.local/bin/fm-toggle dnd"
     },
     /* Icons follow the sink port name: headphone / speaker / headset keys
      * are matched against getSinkPortName(), so they swap when you plug

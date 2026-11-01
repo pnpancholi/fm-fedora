@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# fm-toggle — flip a control-centre switch and keep SwayNC and Waybar in sync.
+#
+#   fm-toggle <dnd|airplane>          flip it           (panel command, bar click)
+#   fm-toggle <dnd|airplane> state    print true|false  (panel update-command)
+#   fm-toggle <dnd|airplane> bar      print one JSON line (Waybar custom module)
+#
+# SwayNC's buttons-grid flips the button itself and only then runs `command`,
+# exporting SWAYNC_TOGGLE_STATE=true|false
+# (src/controlCenter/widgets/shared/toggleButton.vala). An inherited value is
+# applied verbatim instead of flipped again, so a double click cannot leave the
+# button showing something the system is not doing.
+#
+# Airplane has no unprivileged kernel switch — /dev/rfkill is root-only — so it
+# drives NetworkManager and BlueZ over D-Bus, which polkit allows the active
+# session to do without a password prompt. Its state is therefore *derived*:
+# on means every radio we can switch is already off.
+
+AIRPLANE_GLYPH=$'\uf072'
+DND_GLYPH=$'\uf1f6'
+
+fmt_first_line() {
+    # strip ANSI colour, keep one line — a 380px panel is no place for stderr dumps
+    sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' | head -n 1
+}
+
+notify() {   # notify <urgency> <title> <body> [extra notify-send hints...]
+    local urgency="$1" title="$2" body="${3:-}"
+    shift 3 || true
+    body="$(printf '%s' "$body" | fmt_first_line)"
+
+    # journal first: this still works when the notification daemon is the
+    # thing that is broken. Read it with: journalctl -t fm-toggle
+    logger -t fm-toggle "$title${body:+ — $body}" 2>/dev/null || true
+
+    if command -v notify-send >/dev/null 2>&1; then
+        # canonical hint: a repeat failure replaces its own toast instead of
+        # stacking one per click
+        notify-send -a fm-toggle -u "$urgency" -i preferences-system \
+            -h string:x-canonical-private-synchronous:fm-toggle \
+            "$@" "$title" "$body"
+    else
+        printf 'fm-toggle: %s%s\n' "$title" "${body:+ — $body}" >&2
+    fi
+}
+
+usage() {
+    echo "Usage: fm-toggle <dnd|airplane> [state|bar]" >&2
+}
+
+# ── Do Not Disturb ────────────────────────────────────────────────────────────
+# SwayNC owns the state (it persists it in gsettings), so it is also the place
+# to read it back from: no second source of truth to drift.
+
+dnd_state() {
+    local state
+    state="$(swaync-client -D -sw 2>/dev/null | tr -d '[:space:]')" || return 1
+    [[ "$state" == "true" || "$state" == "false" ]] || return 1
+    printf '%s\n' "$state"
+}
+
+dnd_set() {   # dnd_set true|false — explicit, not a toggle, so it is idempotent
+    if [[ "$1" == "true" ]]; then
+        swaync-client -dn -sw
+    else
+        swaync-client -df -sw
+    fi
+}
+
+# ── Airplane ──────────────────────────────────────────────────────────────────
+
+wifi_radio() {
+    local state
+    state="$(nmcli radio wifi 2>/dev/null | tr -d '[:space:]')" || return 1
+    [[ -n "$state" ]] || return 1
+    printf '%s\n' "$state"
+}
+
+bt_powered() {   # yes | no | empty when there is no adapter or bluetoothd is down
+    bluetoothctl show 2>/dev/null | awk -F': ' '/Powered:/{print $2; exit}' || true
+}
+
+airplane_state() {
+    local wifi bt
+    wifi="$(wifi_radio)" || return 1
+    bt="$(bt_powered)"
+    # No adapter means there is nothing to switch: ignore it rather than let it
+    # pin the state to "off" forever.
+    if [[ "$wifi" == "disabled" && "$bt" != "yes" ]]; then
+        printf 'true\n'
+    else
+        printf 'false\n'
+    fi
+}
+
+airplane_set() {   # airplane_set on|off — the radio verb, not the mode verb
+    nmcli radio all "$1" >/dev/null 2>&1 || {
+        printf 'nmcli radio all %s failed\n' "$1"
+        return 1
+    }
+    if command -v bluetoothctl >/dev/null 2>&1; then
+        bluetoothctl power "$1" >/dev/null 2>&1 || {
+            printf 'bluetoothctl power %s failed\n' "$1"
+            return 1
+        }
+    fi
+}
+
+# ── Shared ────────────────────────────────────────────────────────────────────
+
+state_of() {
+    case "$name" in
+        dnd) dnd_state ;;
+        airplane) airplane_state ;;
+    esac
+}
+
+# Waybar only re-reads a custom module on its own interval, on click, or on the
+# signal it was told to listen for. Poking it here is what makes the bar reflect
+# a panel click immediately instead of up to ten seconds later.
+refresh_bar() {
+    pkill -RTMIN+8 waybar 2>/dev/null || true
+}
+
+bar_json() {   # bar_json <glyph> <label> <true|false>
+    local glyph="$1" label="$2" state="$3" class="off" word="off"
+    if [[ "$state" == "true" ]]; then
+        class="on"
+        word="on"
+    fi
+    printf '{"text":"%s","tooltip":"%s: %s","class":"%s"}\n' \
+        "$glyph" "$label" "$word" "$class"
+}
+
+name="${1:-}"
+mode="${2:-toggle}"
+
+case "$name" in
+    dnd|airplane) ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+case "$mode" in
+    toggle|state|bar) ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+if [[ "$mode" == "state" ]]; then
+    state_of
+    exit 0
+fi
+
+if [[ "$mode" == "bar" ]]; then
+    # A failed probe still has to produce JSON, or Waybar keeps the last line.
+    state="$(state_of || echo false)"
+    case "$name" in
+        dnd) bar_json "$DND_GLYPH" "Do Not Disturb" "$state" ;;
+        airplane) bar_json "$AIRPLANE_GLYPH" "Airplane mode" "$state" ;;
+    esac
+    exit 0
+fi
+
+current="$(state_of || true)"
+
+if [[ -n "${SWAYNC_TOGGLE_STATE:-}" ]]; then
+    want="${SWAYNC_TOGGLE_STATE}"
+elif [[ "$current" == "true" ]]; then
+    want="false"
+else
+    want="true"
+fi
+
+case "$name" in
+    dnd)
+        if [[ "$want" == "true" ]]; then
+            word="on"
+        else
+            word="off"
+        fi
+
+        if ! out="$(dnd_set "$want" 2>&1)"; then
+            notify critical "Could not turn Do Not Disturb $word" \
+                "${out:-swaync-client failed}"
+            exit 1
+        fi
+
+        refresh_bar
+
+        if [[ "$want" == "true" ]]; then
+            # DND suppresses popups by design. SWAYNC_BYPASS_DND is the
+            # documented way through (notiModel.vala:257, notiDaemon.vala:224),
+            # so the confirmation is still readable while DND is on.
+            notify normal "Do Not Disturb on" \
+                "Popups muted — notifications still land in the panel." \
+                -h boolean:SWAYNC_BYPASS_DND:true
+        else
+            notify normal "Do Not Disturb off" "Notifications will pop up again."
+        fi
+        ;;
+    airplane)
+        # Mode "on" means every radio goes off, hence the inverted verb.
+        if [[ "$want" == "true" ]]; then
+            verb="off"
+            word="on"
+        else
+            verb="on"
+            word="off"
+        fi
+
+        if ! out="$(airplane_set "$verb" 2>&1)"; then
+            notify critical "Could not turn airplane mode $word" \
+                "${out:-radio switch failed}"
+            exit 1
+        fi
+
+        refresh_bar
+
+        if [[ "$want" == "true" ]]; then
+            notify normal "Airplane mode on" \
+                "Wi-Fi, mobile data and Bluetooth are off."
+        else
+            notify normal "Airplane mode off" "Wi-Fi and Bluetooth are back on."
+        fi
+        ;;
+esac

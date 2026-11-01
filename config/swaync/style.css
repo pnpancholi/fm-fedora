@@ -159,30 +159,56 @@
     color: var(--fm-bg);
 }
 
-/* Connectivity toggles: glyph + name. The grid is inset from the panel edges
- * and each cell carries its own gap, so the block reads narrower than the
- * panel instead of stretching edge to edge. */
-.widget-buttons-grid.connectivity {
+/* Three grids share one geometry: connectivity (Wi-Fi / Bluetooth), modes
+ * (Airplane / DND) and actions (Update / Log Out / Reboot / Power Off). The
+ * widget suffix in config.json becomes a CSS class, which is the only way to
+ * target them apart — 0.12.6's ToggleButton sets no `.toggle` class, so a
+ * single grid could not tell a switch from a plain button.
+ *
+ * Each grid is inset from the panel edges and every cell carries its own gap,
+ * so the blocks read narrower than the panel instead of stretching edge to
+ * edge. */
+.widget-buttons-grid.connectivity,
+.widget-buttons-grid.modes,
+.widget-buttons-grid.actions {
     margin: 4px 14px 10px;
     padding: 0;
 }
 
-.widget-buttons-grid.connectivity flowboxchild {
+.widget-buttons-grid.connectivity flowboxchild,
+.widget-buttons-grid.modes flowboxchild,
+.widget-buttons-grid.actions flowboxchild {
     padding: 4px;
 }
 
-.widget-buttons-grid.connectivity flowboxchild > button {
+.widget-buttons-grid.connectivity flowboxchild > button,
+.widget-buttons-grid.modes flowboxchild > button,
+.widget-buttons-grid.actions flowboxchild > button {
     min-height: 42px;
     padding: 8px 6px;
 }
 
 /* GTK has no `text-align` for a button's label — GtkButton centres its label
  * and CSS can't override the alignment. Equalising every label's width makes
- * all four text runs start at the same x, which reads as left-aligned; the
- * longest label is " Do Not Disturb" (~134px at 14px monospace). */
-.widget-buttons-grid.connectivity flowboxchild > button label {
+ * all text runs start at the same x, which reads as left-aligned; the longest
+ * label is "Do Not Disturb" (~134px at 14px monospace). */
+.widget-buttons-grid.connectivity flowboxchild > button label,
+.widget-buttons-grid.modes flowboxchild > button label,
+.widget-buttons-grid.actions flowboxchild > button label {
     font-size: 14px;
     min-width: 140px;
+}
+
+/* Mode switches read as state, not as buttons: muted while off, primary while
+ * on (the :checked rule above supplies the accent background). Only the modes
+ * grid gets this — muting every unchecked button would make the action rows
+ * look disabled. */
+.widget-buttons-grid.modes flowboxchild > button {
+    color: var(--fm-fg-dim);
+}
+
+.widget-buttons-grid.modes flowboxchild > button:checked {
+    color: var(--fm-bg);
 }
 
 /* ── Sliders (volume / generic) ──────────────────────────────────────────── */

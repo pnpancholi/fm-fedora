@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # PKG: SwayNotificationCenter, brightnessctl, python3-dbus, python3-gobject,
-#      gnome-control-center
+#      gnome-control-center, NetworkManager, bluez
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing SwayNC control center..."
@@ -12,12 +12,15 @@ info "Installing SwayNC control center..."
 #    gnome-control-center — the Wi-Fi/Bluetooth rows open it via bin/fm-settings.
 #                           Already present on Fedora Workstation; pulled in here
 #                           so the buttons are never dead on a minimal install.
+#    NetworkManager +     — bin/fm-toggle drives the Airplane switch through
+#    bluez                  nmcli and bluetoothctl. Both are on Workstation by
+#                           default; named here for the same reason.
 #    python3-dbus +       — only needed by bin/fm-mock-player, the repo-local fake
 #    python3-gobject        MPRIS player used to test the Now Playing tile. The
 #                           app itself never imports them; they are installed here
 #                           so testing needs no manual dnf step.
 sudo dnf install -y SwayNotificationCenter brightnessctl gnome-control-center \
-    python3-dbus python3-gobject
+    NetworkManager bluez python3-dbus python3-gobject
 
 # 1b. Dark UI for the settings app. Outside a GNOME session libadwaita falls
 #     back to its light palette, which looks wrong next to the control centre.
@@ -102,6 +105,21 @@ verify_swaync_install() {
     fi
     if [[ ! -e "$HOME/.local/bin/fm-settings" ]]; then
         warn "Helper missing: ~/.local/bin/fm-settings"
+        failed=1
+    fi
+    # The Airplane / Do Not Disturb switches shell out to fm-toggle, which
+    # drives NetworkManager and BlueZ. Without these the switches still render
+    # but every click reports an error.
+    if ! command -v nmcli >/dev/null 2>&1; then
+        warn "Binary missing: nmcli (Airplane switch won't work)"
+        failed=1
+    fi
+    if ! command -v bluetoothctl >/dev/null 2>&1; then
+        warn "Binary missing: bluetoothctl (Airplane switch won't reach Bluetooth)"
+        failed=1
+    fi
+    if [[ ! -e "$HOME/.local/bin/fm-toggle" ]]; then
+        warn "Helper missing: ~/.local/bin/fm-toggle"
         failed=1
     fi
     # bin/fm-mock-player needs these; the rpm can be installed while the python

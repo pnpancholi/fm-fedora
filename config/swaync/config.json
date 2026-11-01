@@ -32,6 +32,8 @@
     "slider#brightness",
     "volume",
     "buttons-grid#connectivity",
+    "buttons-grid#modes",
+    "buttons-grid#actions",
     "label#now-playing",
     "mpris",
     "label#notifications-header"
@@ -64,39 +66,53 @@
       "buttons-per-row": 2,
       "actions": [
         {
-          "label": " Wi-Fi ›",
+          "label": "\uf1eb Wi-Fi \u203a",
           "type": "normal",
           "command": "sh -c '$HOME/.local/bin/fm-settings wifi'"
         },
         {
-          "label": " Bluetooth ›",
+          "label": "\uf294 Bluetooth \u203a",
           "type": "normal",
           "command": "sh -c '$HOME/.local/bin/fm-settings bluetooth'"
-        },
+        }
+      ]
+    },
+    "buttons-grid#modes": {
+      "buttons-per-row": 2,
+      "actions": [
         {
-          "label": " Airplane",
+          "label": "\uf072 Airplane",
           "type": "toggle",
-          "active": false
+          "active": false,
+          "command": "sh -c '$HOME/.local/bin/fm-toggle airplane'",
+          "update-command": "sh -c '$HOME/.local/bin/fm-toggle airplane state'"
         },
         {
-          "label": " Do Not Disturb",
+          "label": "\uf1f6 Do Not Disturb",
           "type": "toggle",
-          "active": false
-        },
+          "active": false,
+          "command": "sh -c '$HOME/.local/bin/fm-toggle dnd'",
+          "update-command": "sh -c '$HOME/.local/bin/fm-toggle dnd state'"
+        }
+      ]
+    },
+    "buttons-grid#actions": {
+      "buttons-per-row": 2,
+      "actions": [
         {
-          "label": " Update",
+          "label": "\uf021 Update",
           "type": "normal"
         },
         {
-          "label": " Log Out",
+          "label": "\uf08b Log Out",
           "type": "normal"
         },
         {
-          "label": " Reboot",
+          "label": "\uf01e Reboot",
           "type": "normal"
         },
         {
-          "label": " Power Off",
+          "label": "\uf011 Power Off",
           "type": "normal"
         }
       ]
