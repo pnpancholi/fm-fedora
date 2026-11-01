@@ -52,7 +52,7 @@
         "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
         "tooltip-format-disconnected": "Disconnected",
         "interval": 10,
-        "on-click": "ghostty -e nmtui",
+        "on-click": "sh -c '$HOME/.local/bin/fm-settings wifi'",
         "format-linked": ""
     },
     /* Same idea: one glyph, dimmed via .off / .disabled rather than a
@@ -62,7 +62,7 @@
         "format-disconnected": "",
         "format-off": "",
         "format-no-controller": "",
-        "on-click": "ghostty -e bluetoothctl"
+        "on-click": "sh -c '$HOME/.local/bin/fm-settings bluetooth'"
     },
     /* Icons follow the sink port name: headphone / speaker / headset keys
      * are matched against getSinkPortName(), so they swap when you plug

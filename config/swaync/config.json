@@ -65,13 +65,13 @@
       "actions": [
         {
           "label": " Wi-Fi ›",
-          "type": "toggle",
-          "active": false
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-settings wifi'"
         },
         {
           "label": " Bluetooth ›",
-          "type": "toggle",
-          "active": false
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-settings bluetooth'"
         },
         {
           "label": " Airplane",

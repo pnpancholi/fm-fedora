@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# fm-settings — open a GNOME Settings page.
+#
+# SwayNC (control centre) and Waybar (bar icons) both call this, so the panel
+# and the bar never disagree about what "Wi-Fi" or "Bluetooth" does.
+#
+# Two GNOME Settings quirks drive the shape of this script:
+#
+#   1. It refuses to start unless XDG_CURRENT_DESKTOP contains "GNOME"
+#      (shell/cc-application.c, is_supported_desktop). Our session reports
+#      "mango", so the override is scoped to the child process only.
+#   2. It is a GApplication: a second invocation is forwarded over D-Bus to the
+#      running instance and exits 0 even when the requested panel id does not
+#      exist. Failures therefore have to be caught up front against --list,
+#      not from an exit code.
+
+fmt_first_line() {
+    # strip ANSI colour, keep one line — a 380px panel is no place for stderr dumps
+    sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' | head -n 1
+}
+
+notify() {   # notify <urgency> <title> [body]
+    local urgency="$1" title="$2" body="${3:-}"
+    body="$(printf '%s' "$body" | fmt_first_line)"
+
+    # journal first: this still works when the notification daemon is the
+    # thing that is broken. Read it with: journalctl -t fm-settings
+    logger -t fm-settings "$title${body:+ — $body}" 2>/dev/null || true
+
+    if command -v notify-send >/dev/null 2>&1; then
+        # the canonical hint makes repeat failures replace one notification
+        # instead of stacking one per click
+        notify-send -a fm-settings -u "$urgency" -i preferences-system \
+            -h string:x-canonical-private-synchronous:fm-settings \
+            "$title" "$body"
+    else
+        printf 'fm-settings: %s%s\n' "$title" "${body:+ — $body}" >&2
+    fi
+}
+
+usage() {
+    echo "Usage: fm-settings <wifi|bluetooth|power|sound|display|network>" >&2
+}
+
+page="${1:-}"
+case "$page" in
+    wifi|bluetooth|power|sound|display|network) ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
+    notify normal "No graphical session" "Run this from the desktop, not a TTY."
+    exit 1
+fi
+
+if ! command -v gnome-control-center >/dev/null 2>&1; then
+    notify critical "Settings app is missing" "sudo dnf install gnome-control-center"
+    exit 1
+fi
+
+run_cc() { XDG_CURRENT_DESKTOP=GNOME gnome-control-center "$@"; }
+
+cc_version() { run_cc --version 2>/dev/null | awk '{print $NF}'; }
+
+# --list prints "Available panels:" followed by tab-indented ids.
+if ! list_out="$(run_cc --list 2>&1)"; then
+    notify critical "Settings could not start" \
+        "${list_out:-gnome-control-center exited non-zero}"
+    exit 1
+fi
+
+panels="$(sed 's/^[[:space:]]*//' <<<"$list_out")"
+
+# g-c-c 43+ has a dedicated wifi panel; only older builds need the fallback.
+if [[ "$page" == "wifi" ]] && ! grep -qx "wifi" <<<"$panels"; then
+    page="network"
+    notify normal "No Wi-Fi panel on this build" "Opening Network settings instead."
+fi
+
+if ! grep -qx "$page" <<<"$panels"; then
+    notify critical "No '$page' panel in Settings" \
+        "Update gnome-control-center (installed: $(cc_version))."
+    exit 1
+fi
+
+# Foreground on purpose: when no instance is running this blocks until the
+# window closes, which is what lets a startup failure reach the user. When an
+# instance is already up it hands the panel over and returns immediately.
+err="$(run_cc "$page" 2>&1)" || {
+    notify critical "Could not open Settings ($page)" \
+        "${err:-gnome-control-center exited non-zero}"
+    exit 1
+}
