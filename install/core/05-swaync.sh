@@ -122,6 +122,11 @@ verify_swaync_install() {
         warn "Helper missing: ~/.local/bin/fm-toggle"
         failed=1
     fi
+    # Log Out / Reboot / Power Off shell out to fm-power.
+    if [[ ! -e "$HOME/.local/bin/fm-power" ]]; then
+        warn "Helper missing: ~/.local/bin/fm-power"
+        failed=1
+    fi
     # bin/fm-mock-player needs these; the rpm can be installed while the python
     # module is still missing from sys.path, so import it for real.
     if ! python3 -c 'import dbus, gi' >/dev/null 2>&1; then

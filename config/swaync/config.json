@@ -100,20 +100,24 @@
       "buttons-per-row": 2,
       "actions": [
         {
-          "label": "\uf021 Update",
-          "type": "normal"
+          "label": "\uf186 Suspend",
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-power suspend'"
         },
         {
           "label": "\uf08b Log Out",
-          "type": "normal"
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-power logout'"
         },
         {
           "label": "\uf01e Reboot",
-          "type": "normal"
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-power reboot'"
         },
         {
           "label": "\uf011 Power Off",
-          "type": "normal"
+          "type": "normal",
+          "command": "sh -c '$HOME/.local/bin/fm-power poweroff'"
         }
       ]
     }

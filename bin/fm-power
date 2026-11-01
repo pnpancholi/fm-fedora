@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# fm-power — session and power actions for the control-centre buttons.
+#
+#   fm-power <logout|suspend|reboot|poweroff>
+#
+# Logout asks mango to quit through its own IPC, so the compositor exits cleanly.
+# Reboot and poweroff go through logind, which allows the active session to do
+# them without a password prompt.
+
+notify() {   # notify <urgency> <title> <body>
+    local urgency="$1" title="$2" body="${3:-}"
+    body="$(printf '%s' "$body" | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' | head -n 1)"
+
+    logger -t fm-power "$title${body:+ — $body}" 2>/dev/null || true
+
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a fm-power -u "$urgency" -i system-shutdown \
+            -h string:x-canonical-private-synchronous:fm-power \
+            "$title" "$body"
+    else
+        printf 'fm-power: %s%s\n' "$title" "${body:+ — $body}" >&2
+    fi
+}
+
+usage() {
+    echo "Usage: fm-power <logout|suspend|reboot|poweroff>" >&2
+}
+
+action="${1:-}"
+
+case "$action" in
+    logout)   title="Could not log out" ;;
+    suspend)  title="Could not suspend" ;;
+    reboot)   title="Could not reboot" ;;
+    poweroff) title="Could not power off" ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+run() {
+    case "$action" in
+        logout)   mmsg dispatch quit ;;
+        suspend)  systemctl suspend ;;
+        reboot)   systemctl reboot ;;
+        poweroff) systemctl poweroff ;;
+    esac
+}
+
+if ! out="$(run 2>&1)"; then
+    notify critical "$title" "${out:-command failed}"
+    exit 1
+fi
