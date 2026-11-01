@@ -33,6 +33,14 @@ fm_upgrade() {
 
     git -C "$FM_FEDORA_PATH" pull --quiet
     source "$FM_FEDORA_PATH/install.sh"
+
+    # Module 01 refuses to upgrade a live session (see install/core/01-dnf-setup.sh).
+    # Say so out loud instead of leaving the user to wonder why nothing updated.
+    if [[ "${FM_SYSTEM_UPGRADE_SKIPPED:-0}" == "1" ]]; then
+        warn "fm-fedora updated; system packages were left alone."
+        warn "For system updates: log out to a TTY, run 'sudo dnf upgrade --refresh', reboot."
+    fi
+
     success "Upgrade complete."
 }
 

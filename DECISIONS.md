@@ -76,3 +76,22 @@ Options rejected:
 - 📦 Modules updated: `02-swayfx.sh` → `02-mango.sh`, `config/sway/` → `config/mango/`
 - 🔧 Waybar modules updated: `sway/workspaces`/`sway/window` → `mango/workspaces`/`mango/window` (+ `mango/layout`)
 - 🗑️ `bin/fm-create-sway-desktop` removed — mango ships its own `/usr/share/wayland-sessions/mango.desktop`
+
+---
+
+## ADR-004: `fm upgrade` never upgrades a live session; the bar is session-owned
+
+**Date:** 2026-11-01
+
+**Context:** `fm upgrade` runs `install/core/01-dnf-setup.sh`, which did a full `sudo dnf upgrade --refresh` from inside the running Mango session. Replacing GTK/GLib/mangowm underneath a live bar and compositor kills them mid-redraw. Waybar is started by a bare `exec_once=waybar`, so a dead bar is never respawned and the session is left without a status bar until logout.
+
+The obvious alternative — supervise the bar with a restart loop or systemd user unit — was rejected: it hides real crashes and adds a moving part for a failure that only occurs when the installer mutates live libraries.
+
+**Decision:** Module 01 skips the full system upgrade whenever `WAYLAND_DISPLAY` or `DISPLAY` is set, and points the user at a TTY. `boot.sh` first installs are unaffected (no session yet). RPM Fusion is enabled *before* the upgrade so a cold install also gets those packages.
+
+**Consequences:**
+- ✅ `fm upgrade` only re-applies config and installs packages; it never swaps libraries under a running session
+- ✅ A missing bar is now a crash symptom, not an installer side effect — logout/login is a valid recovery
+- ✅ `fm upgrade` prints the skip and the TTY command, so it isn't silently doing less
+- ⚠️ `fm upgrade` alone no longer brings system packages up to date; system updates are a separate, deliberate step
+- ⚠️ A Waybar crash from any other cause still needs a logout. Accepted: the bar is part of the session, not a supervised daemon
