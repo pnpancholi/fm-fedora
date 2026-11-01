@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-*Last updated: 2026-10-25*
+*Last updated: 2026-11-01*
 
 Each record follows: **Context → Decision → Consequences**
 
@@ -76,3 +76,23 @@ Options rejected:
 - 📦 Modules updated: `02-swayfx.sh` → `02-mango.sh`, `config/sway/` → `config/mango/`
 - 🔧 Waybar modules updated: `sway/workspaces`/`sway/window` → `mango/workspaces`/`mango/window` (+ `mango/layout`)
 - 🗑️ `bin/fm-create-sway-desktop` removed — mango ships its own `/usr/share/wayland-sessions/mango.desktop`
+
+---
+
+## ADR-004: Lock screen — gtklock over swaylock
+
+**Date:** 2026-11-01
+
+**Context:** The session lock needs a clock, date, username, and password. Fedora's `swaylock` is mature but only renders a password indicator; adding a clock/username requires a wrapper or a separate overlay. `swaylock-effects` (clock/blur) is unmaintained and has no Fedora builds past F41. `hyprlock` is mature but lives in a COPR, pulls Hyprland libraries, and is built for Hyprland rather than mango. `gtklock` is packaged in Fedora (4.0.0 on F44/F45), GTK3, PAM, and uses `ext-session-lock`, which mango supports.
+
+**Decision:** Use **gtklock** as the session locker, with a custom XML layout for the username and Tokyo Night CSS. `swayidle` and `before-sleep` call `gtklock`; `SUPER+Escape` locks manually.
+
+**Consequences:**
+- ✅ Clock, date, username, and password in one official Fedora package
+- ✅ `ext-session-lock`; works on sway/wlroots and mango
+- ✅ GTK3/CSS matches the existing Waybar/SwayNC theme
+- ✅ PAM authenticates the current user; no new auth stack
+- ⚠️ Username is display-only; gtklock cannot switch users
+- ⚠️ Upstream is looking for a new maintainer; the Fedora package is maintained
+- ⚠️ Custom layout must preserve gtklock's required widget IDs/signals
+- 🗑️ `swaylock` removed from `02-mango.sh` and `~/.config/swaylock/config`

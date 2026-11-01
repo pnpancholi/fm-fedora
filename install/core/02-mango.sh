@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: mangowm swaybg swayidle swaylock swayimg slurp grim wlopm
+# PKG: mangowm swaybg swayidle swayimg slurp grim wlopm
 #      xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk
 #      brightnessctl playerctl pavucontrol wl-clipboard cliphist
 #      [spice-vdagent xclip in VMs]
@@ -45,8 +45,11 @@ if ! grep -rhqE '^gpgcheck=1' /etc/yum.repos.d/terra*.repo 2>/dev/null; then
     return 1
 fi
 
-# 1c. Drop the abandoned swaylock-effects COPR if a previous run enabled it
+# 1c. Drop the abandoned swaylock-effects COPR and the old generated swaylock
+#     config; the lock screen is gtklock (07-gtklock.sh).
 sudo rm -f "/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:pheeef:swaylock-effects.repo"
+rm -f "$HOME/.config/swaylock/config" 2>/dev/null || true
+rmdir "$HOME/.config/swaylock" 2>/dev/null || true
 
 # 2. Install compositor (pinned), then session/portal tools
 if ! sudo dnf install -y --enablerepo='terra*' "mangowm-${MANGO_VERSION}"; then
@@ -61,43 +64,29 @@ if systemd-detect-virt --quiet 2>/dev/null; then
 fi
 
 sudo dnf install -y --allowerasing --skip-unavailable \
-    swaybg swayidle swaylock swayimg slurp grim wlopm \
+    swaybg swayidle swayimg slurp grim wlopm \
     xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
     brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
 
-# 2b. Lock screen config. Fedora's swaylock only does solid colors.
-SWAYLOCK_CONFIG="color=1e1e1e
-indicator
-indicator-radius=60
-indicator-thickness=4
-ring-color=7aa2f7
-inside-color=1e1e1e
-line-color=1e1e1e
-key-hl-color=7aa2f7
-text-color=ffffff
-"
-
+# Lock screen is installed separately by 07-gtklock.sh (gtklock).
 command -v mango >/dev/null 2>&1 || { error "mango binary not found after install"; return 1; }
 success "mangowm $(rpm -q --qf '%{VERSION}' mangowm) installed"
 
-# 4. Configs. theme.conf is sourced by config.conf, so write it first.
+# 3. Configs. theme.conf is sourced by config.conf, so write it first.
 write_config_ensure "$HOME/.config/mango/theme.conf" "$(cat "$CONFIG_DIR/theme.conf")"
 write_config_ensure "$HOME/.config/mango/config.conf" "$(cat "$CONFIG_DIR/config.conf")"
 
-# 5. XDG portals — screen sharing via wlr, everything else via gtk
+# 4. XDG portals — screen sharing via wlr, everything else via gtk
 write_config_ensure "$HOME/.config/xdg-desktop-portal/mango-portals.conf" "[preferred]
 default=gtk
 org.freedesktop.impl.portal.ScreenCast=wlr
 org.freedesktop.impl.portal.Screenshot=wlr
 "
 
-# 6. Lock screen config (defined in step 2b)
-write_config_ensure "$HOME/.config/swaylock/config" "$SWAYLOCK_CONFIG"
-
-# 7. environment.d for systemd/user services (all GPUs)
+# 5. environment.d for systemd/user services (all GPUs)
 mkdir -p "$HOME/.config/environment.d"
 
-# 7a. Retire the old sway env file: environment.d is applied across the whole
+# 5a. Retire the old sway env file: environment.d is applied across the whole
 #     session, so a leftover sway.conf would override XDG_CURRENT_DESKTOP=mango.
 if [[ -f "$HOME/.config/environment.d/sway.conf" ]]; then
     mv "$HOME/.config/environment.d/sway.conf" "$HOME/.config/environment.d/sway.conf.bak"
@@ -111,7 +100,7 @@ SDL_VIDEODRIVER=wayland
 CLUTTER_BACKEND=wayland
 "
 
-# 8. NVIDIA-specific env vars (only if NVIDIA GPU detected).
+# 6. NVIDIA-specific env vars (only if NVIDIA GPU detected).
 #    Guarded so re-running install.sh doesn't append the block twice.
 if lspci | grep -qi nvidia; then
     if grep -q '^# NVIDIA (auto-detected)$' "$HOME/.config/environment.d/mango.conf" 2>/dev/null; then
@@ -130,7 +119,7 @@ EOF
     fi
 fi
 
-# 9. Wallpaper
+# 7. Wallpaper
 mkdir -p "$HOME/Pictures/wallpapers"
 WALLPAPER_SRC="$FM_FEDORA_PATH/assets/nordic-wp.png"
 WALLPAPER_DEST="$HOME/Pictures/wallpapers/nordic-wp.png"
@@ -145,7 +134,7 @@ verify_mango_install() {
 
     local failed=0
 
-    for pkg in mangowm swaybg swayidle swaylock swayimg slurp grim wlopm \
+    for pkg in mangowm swaybg swayidle swayimg slurp grim wlopm \
                xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
                brightnessctl playerctl pavucontrol wl-clipboard cliphist; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
