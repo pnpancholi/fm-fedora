@@ -187,6 +187,8 @@
 
 /* ── Sliders (volume / generic) ──────────────────────────────────────────── */
 
+/* Gutter matches the connectivity grid and the mpris card (14px), so every
+ * row in the panel starts and ends on the same lines. */
 .widget-volume,
 .widget-slider,
 .widget-backlight {
@@ -194,14 +196,27 @@
     color: var(--fm-fg);
     border: 1px solid var(--fm-border);
     border-radius: 0;
-    margin: 6px 8px;
-    padding: 4px 8px;
+    margin: 6px 14px;
+    padding: 4px 10px;
 }
 
 .widget-volume label,
 .widget-slider label,
 .widget-backlight label {
     color: var(--fm-fg-dim);
+}
+
+/* Fixed label column. Both widgets are a horizontal label + scale row, but
+ * they are built differently: `slider#brightness` is the Gtk.Box itself
+ * (label/scale are direct children), while `volume` wraps them in an inner
+ * box inside a vertical widget. Left to natural width, "Brightness" pushes
+ * its track further right than "Volume" and the two scales start on
+ * different x. Sizing the label column to the longest label makes the
+ * tracks identical; the right edges already match because both widgets
+ * share the same outer margins. Change the two selectors together. */
+.widget-slider > label,
+.widget-volume > box > label {
+    min-width: 88px;
 }
 
 .widget-volume trough,
