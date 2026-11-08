@@ -159,8 +159,8 @@ verify_umbriel_install() {
 
     # Offline config validation
     if command -v umbriel >/dev/null 2>&1; then
-        if ! umbriel -c "$HOME/.config/umbriel/config.toml" config validate >/dev/null 2>&1; then
-            warn "Umbriel config check failed — run: umbriel -c ~/.config/umbriel/config.toml config validate"
+        if ! umbriel config validate -c "$HOME/.config/umbriel/config.toml" >/dev/null 2>&1; then
+            warn "Umbriel config check failed — run: umbriel config validate -c ~/.config/umbriel/config.toml"
             failed=1
         fi
     fi
