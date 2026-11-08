@@ -33,14 +33,18 @@ done
 info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\""
 
 # Core modules
+# Parked while the compositor switch settles; re-enable as the new shell layers
+# land. 02-mango.sh is also parked so the old session can be restored by
+# swapping it back in for 02-umbriel.sh.
+#    install/core/02-mango.sh
+#    install/core/03-waybar.sh
+#    install/core/04-ghostty.sh
+#    install/core/05-swaync.sh
+#    install/core/06-vicinae.sh
+#    install/core/07-gtklock.sh
 for script in \
     "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
-    "$FM_FEDORA_PATH"/install/core/02-mango.sh \
-    "$FM_FEDORA_PATH"/install/core/03-waybar.sh \
-    "$FM_FEDORA_PATH"/install/core/04-ghostty.sh \
-    "$FM_FEDORA_PATH"/install/core/05-swaync.sh \
-    "$FM_FEDORA_PATH"/install/core/06-vicinae.sh \
-    "$FM_FEDORA_PATH"/install/core/07-gtklock.sh; do
+    "$FM_FEDORA_PATH"/install/core/02-umbriel.sh; do
     info "-- $(basename "$script")"
     source "$script"
 done

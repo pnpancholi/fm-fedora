@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-*Last updated: 2026-11-01*
+*Last updated: 2026-11-08*
 
 Each record follows: **Context → Decision → Consequences**
 
@@ -114,3 +114,31 @@ Two upstream behaviours shaped this and are worth not rediscovering: SwayNC's `b
 - ⚠️ Derived state: turning Wi-Fi and Bluetooth off by hand also reads as "airplane on". Honest — all radios *are* off — but it can look like the switch acted on its own
 - ⚠️ Switching airplane off turns every radio on; it does not restore the previous mix. GNOME remembers, we do not
 - ⚠️ The "Do Not Disturb on" confirmation needs the `SWAYNC_BYPASS_DND` hint, or DND suppresses its own toast
+
+---
+
+## ADR-006: Compositor — mango to Umbriel
+
+**Date:** 2026-11-08
+
+**Context:** mango's animation and workspace model were the reason it replaced SwayFX (ADR-003), but its development path is independent of the shell work this setup is moving toward. Umbriel comes from the same project family as Noctalia (`noctalia-dev`), pairs with it as a first-class shell, and is built on the same stack mango already used: wlroots 0.20 + a SceneFX fork (`umbrielfx`). Its config is live-reloaded TOML with an offline validator, it has per-output workspaces, and its IPC is `umbriel msg …`.
+
+Options rejected:
+- **Stay on mango** — works today, but no first-class Noctalia pairing and a tag model that the shell has to translate.
+- **niri** — scrolling is only one Umbriel layout; niri's scrollable model was already rejected in ADR-003.
+- **Hyprland** — retired from Fedora after F42 (ADR-003).
+- **SwayFX** — motion ceiling documented in ADR-003.
+
+**Decision:** Replace mango with **Umbriel**, installed from Terra as `umbriel-nightly` plus `xdg-desktop-portal-umbriel-nightly`. The module is parked alongside the still-installed `mangowm`, and `~/.config/mango/` is left untouched, so a revert is a one-line change in `install.sh`.
+
+**Consequences:**
+- ✅ Same graphics stack (wlroots 0.20 + SceneFX fork), so GPU risk stays low
+- ✅ TOML config at `~/.config/umbriel/config.toml`, live reload, `umbriel config validate` replaces `mango -c … -p`
+- ✅ First-class path to adopting Noctalia surface by surface (bar, dock, notifications, OSD, lock, wallpaper, clipboard) — each has its own config switch
+- ⚠️ Umbriel has **no upstream releases or tags** (`VERSION` 0.1.0); every Fedora build is a nightly git snapshot. Terra stays `enabled=0` outside the module, so the compositor only moves when the installer runs, but there is no `MANGO_VERSION`-style pin to hold
+- ⚠️ Workspace semantics change: `Mod+Shift+N` moves the focused window **and follows it**, where mango's `tag` kept focus on the current tag
+- ⚠️ `Mod+0` is bound to the overview because Umbriel has no 10th workspace; `Mod+O` is kept as a synonym
+- ⚠️ Waybar/SwayNC/Vicinae/gtklock/swaybg are deliberately unchanged in this pass; they are the next layers to replace with Noctalia
+- 📦 Modules updated: `02-mango.sh` → `02-umbriel.sh`, `config/mango/` → `config/umbriel/`
+- 🔧 `bin/fm-power` logout now calls `umbriel msg session-quit skip-confirmation`
+- 🗑️ `xdg-desktop-portal-wlr` is no longer installed; Umbriel's own portal backend handles ScreenCast/Screenshot

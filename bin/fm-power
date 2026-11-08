@@ -5,7 +5,7 @@ set -euo pipefail
 #
 #   fm-power <logout|suspend|reboot|poweroff>
 #
-# Logout asks mango to quit through its own IPC, so the compositor exits cleanly.
+# Logout asks Umbriel to quit through its own IPC, so the compositor exits cleanly.
 # Reboot and poweroff go through logind, which allows the active session to do
 # them without a password prompt.
 
@@ -43,7 +43,7 @@ esac
 
 run() {
     case "$action" in
-        logout)   mmsg dispatch quit ;;
+        logout)   umbriel msg session-quit skip-confirmation ;;
         suspend)  systemctl suspend ;;
         reboot)   systemctl reboot ;;
         poweroff) systemctl poweroff ;;
