@@ -13,8 +13,37 @@ window-padding-y = 8
 font-family = "JetBrains Mono"
 font-size = 11
 
-# Theme + Blur (10% = 0.9 opacity)
-theme = "TokyoNight Night"
+# Theme — Monochrome palette, matching the Noctalia shell and Vicinae.
+# Inline instead of a named theme so no theme-file lookup can miss.
+# Source: config/noctalia/palettes/Monochrome.json (dark.terminal)
+background = #111111
+foreground = #828282
+cursor-color = #aaaaaa
+cursor-text = #111111
+selection-background = #828282
+selection-foreground = #111111
+
+# normal
+palette = 0=#191919
+palette = 1=#dddddd
+palette = 2=#cccccc
+palette = 3=#aaaaaa
+palette = 4=#a7a7a7
+palette = 5=#dddddd
+palette = 6=#cccccc
+palette = 7=#828282
+
+# bright
+palette = 8=#3c3c3c
+palette = 9=#dddddd
+palette = 10=#cccccc
+palette = 11=#aaaaaa
+palette = 12=#a7a7a7
+palette = 13=#dddddd
+palette = 14=#cccccc
+palette = 15=#ffffff
+
+# 10% translucency
 background-opacity = 0.9
 
 # Performance

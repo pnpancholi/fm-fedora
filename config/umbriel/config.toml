@@ -27,6 +27,9 @@ QT_QPA_PLATFORMTHEME = "qt5ct"
 SDL_VIDEODRIVER = "wayland"
 CLUTTER_BACKEND = "wayland"
 ELECTRON_OZONE_PLATFORM_HINT = "auto"
+# Default terminal. Noctalia reads $TERMINAL for Terminal=true apps; Umbriel
+# publishes this to the systemd user manager as well.
+TERMINAL = "ghostty"
 
 # ==============================================================================
 # Input
@@ -140,8 +143,8 @@ default_floating_size_px = { width = 1020, height = 900 }
 "Mod+Shift+C" = { action = "config-reload", repeat = false }
 "Mod+Shift+E" = { action = "session-quit", repeat = false }
 
-# Terminal: Fedora's default (Ptyxis), RPM or flatpak.
-"Mod+Return" = { action = "spawn sh -c 'command -v ptyxis >/dev/null && exec ptyxis || exec flatpak run org.gnome.Ptyxis'", repeat = false }
+# Terminal. Ghostty is the session's $TERMINAL (see [environment] above).
+"Mod+Return" = { action = "spawn ghostty", repeat = false }
 
 "Mod+Q" = { action = "window-close", repeat = false }
 "Mod+F" = { action = "window-toggle-fullscreen", repeat = false }

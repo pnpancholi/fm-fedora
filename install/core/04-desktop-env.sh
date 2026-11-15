@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PKG: vicinae (COPR: scottames/vicinae)
-# REPO: Fedora default + scottames/vicinae COPR
+# Desktop layer: the launcher (Vicinae) and the terminal (Ghostty).
+#
+# PKG: vicinae, ghostty (COPR: scottames/vicinae, scottames/ghostty)
+# REPO: Fedora default + scottames COPRs
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
-info "Installing Vicinae (launcher)..."
+info "Installing desktop layer (Vicinae, Ghostty)..."
 
 # ── Hardcoded values (edit here, not inline) ──
 VICINAE_PKG="vicinae"
+GHOSTTY_PKG="ghostty"
+CONTROL_CENTER_PKG="gnome-control-center"
 THEME_ID="monochrome"
 CONFIG_DIR="$FM_FEDORA_PATH/config/vicinae"
 THEME_SRC="$CONFIG_DIR/themes/${THEME_ID}.toml"
+GHOSTTY_CONFIG_SRC="$FM_FEDORA_PATH/config/ghostty/config"
+GHOSTTY_CONFIG_DEST="$HOME/.config/ghostty/config"
 
 USER_THEME_DIR="$HOME/.local/share/vicinae/themes"
 THEME_DEST="$USER_THEME_DIR/${THEME_ID}.toml"
@@ -62,23 +68,45 @@ else
     warn "No systemd user manager in this environment — enable vicinae.service after login"
 fi
 
+# 6. Ghostty. Mod+Return and $TERMINAL (set in config/umbriel/config.toml) point
+#    at it, so it is the session's only terminal.
+enable_copr "scottames/ghostty"
+sudo dnf install -y "$GHOSTTY_PKG"
+
+# 6a. GNOME Settings. Noctalia owns the bar and control centre, but the Wi-Fi,
+#     Bluetooth and power rows in bin/fm-settings shell out to this binary; no
+#     other active module installs it.
+sudo dnf install -y "$CONTROL_CENTER_PKG"
+
+# 7. Ghostty config. Colours are inline (Monochrome palette), so no theme file
+#    lookup can resolve to the wrong thing.
+if [[ ! -f "$GHOSTTY_CONFIG_SRC" ]]; then
+    error "Ghostty config missing in repo: $GHOSTTY_CONFIG_SRC"
+    return 1
+fi
+write_config_ensure "$GHOSTTY_CONFIG_DEST" "$(cat "$GHOSTTY_CONFIG_SRC")"
+
 # ── Verification ──
-verify_vicinae_install() {
-    info "Verifying Vicinae installation..."
+verify_desktop_env_install() {
+    info "Verifying desktop layer..."
 
     local failed=0
 
-    if ! rpm -q "$VICINAE_PKG" >/dev/null 2>&1; then
-        warn "Package missing: $VICINAE_PKG"
-        failed=1
-    fi
+    for pkg in "$VICINAE_PKG" "$GHOSTTY_PKG" "$CONTROL_CENTER_PKG"; do
+        if ! rpm -q "$pkg" >/dev/null 2>&1; then
+            warn "Package missing: $pkg"
+            failed=1
+        fi
+    done
 
-    if ! command -v vicinae >/dev/null 2>&1; then
-        warn "vicinae binary not found"
-        failed=1
-    fi
+    for bin in vicinae ghostty gnome-control-center; do
+        if ! command -v "$bin" >/dev/null 2>&1; then
+            warn "$bin binary not found"
+            failed=1
+        fi
+    done
 
-    for f in "$SETTINGS_DEST" "$THEME_DEST" "$DROPIN"; do
+    for f in "$SETTINGS_DEST" "$THEME_DEST" "$DROPIN" "$GHOSTTY_CONFIG_DEST"; do
         if [[ ! -f "$f" ]]; then
             warn "Missing: $f"
             failed=1
@@ -93,13 +121,13 @@ verify_vicinae_install() {
     fi
 
     if [[ $failed -eq 0 ]]; then
-        success "Vicinae installation verified."
+        success "Desktop layer verified."
     else
         error "Verification failed. Check warnings above."
         return 1
     fi
 }
 
-verify_vicinae_install
+verify_desktop_env_install
 
-success "Vicinae installed. It replaces the Noctalia launcher on Mod+Space."
+success "Desktop layer installed: Vicinae (Mod+Space), Ghostty (Mod+Return, \$TERMINAL)."
