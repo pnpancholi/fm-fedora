@@ -3,16 +3,19 @@
 # Validate with: noctalia config validate ~/.config/noctalia/config.toml
 # Reference: https://docs.noctalia.dev/noctalia/
 #
-# Minimal on purpose: a single top bar, a static wallpaper, no dock. Everything
-# else stays at Noctalia's built-in defaults.
+# Minimal on purpose: one full-width square top bar, a static wallpaper, no
+# dock. Monochrome only — palette: palettes/Monochrome.json (vendored copy of
+# the community palette, pinned so no network fetch is needed).
 # GUI changes land in ~/.local/state/noctalia/settings.toml and win over this
 # file; keep the two in sync or edit only here.
 
 # ==============================================================================
-# Theme
+# Theme — pinned monochrome palette
 # ==============================================================================
 [theme]
 mode = "dark"
+source = "custom"
+custom_palette = "Monochrome"
 
 # ==============================================================================
 # Wallpaper — static, no rotation
@@ -26,7 +29,7 @@ directory = "~/Pictures/wallpapers"
 # Initial wallpaper on every output. Picking one in the UI rewrites this key in
 # settings.toml, which loads after this file.
 [wallpaper.default]
-path = "~/Pictures/wallpapers/nordic-wp-lock.jpg"
+path = "~/Pictures/wallpapers/dw.jpg"
 
 # ==============================================================================
 # Dock — explicitly off
@@ -35,7 +38,7 @@ path = "~/Pictures/wallpapers/nordic-wp-lock.jpg"
 enabled = false
 
 # ==============================================================================
-# Bar — one bar, top, defaults for thickness/radius/spacing
+# Bar — full width, square, no blur, no capsules
 # ==============================================================================
 [bar]
 order = ["default"]
@@ -45,6 +48,41 @@ position = "top"
 enabled = true
 reserve_space = true
 
-start = ["launcher", "workspaces"]
+background_opacity = 1.0
+# No blur behind the bar: the wallpaper stays crisp under it.
+compositor_blur = false
+border_width = 0.0
+shadow = false
+capsule = false
+hover_highlight = false
+
+# Square corners, flush to both screen edges.
+radius = 0
+radius_top_left = 0
+radius_top_right = 0
+radius_bottom_left = 0
+radius_bottom_right = 0
+concave_edge_corners = false
+margin_ends = 0
+margin_edge = 0
+padding = 10
+
+# Left: workspace numbers only — no launcher/search.
+start = ["workspaces"]
 center = ["clock"]
 end = ["network", "volume", "brightness", "battery", "notifications", "control-center"]
+
+# ==============================================================================
+# Widgets
+# ==============================================================================
+# Bare workspace numbers separated by a pipe, no pill backgrounds.
+[widget.workspaces]
+style = "minimal"
+show_labels = true
+label_source = "id"
+separator = "|"
+separator_color = "on_surface_variant"
+change_color_on_hover = false
+focused_color = "on_surface"
+occupied_color = "on_surface_variant"
+empty_color = "outline_variant"
