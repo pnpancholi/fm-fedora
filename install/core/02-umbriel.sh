@@ -3,60 +3,73 @@ set -euo pipefail
 
 # PKG: umbriel-nightly xdg-desktop-portal-umbriel-nightly
 #      xdg-desktop-portal xdg-desktop-portal-gtk
-# REPO: terra (repos.fyralabs.com; disabled by default, enabled per-command)
+# REPO: terra (repos.fyralabs.com; enabled for this install, disabled after)
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 info "Installing Umbriel core packages..."
 
 # ── Hardcoded values (edit here, not inline) ──
 # Umbriel has no upstream releases or tags yet: every Fedora build is a git
-# snapshot. Terra rebuilds this nightly, so there is no version to pin. Terra
-# stays disabled outside this module, so the compositor only moves when the
-# installer is re-run.
+# snapshot. Terra rebuilds this nightly, so there is no version to pin.
 UMBRIEL_PKG="umbriel-nightly"
 UMBRIEL_PORTAL_PKG="xdg-desktop-portal-umbriel-nightly"
 TERRA_REPO_ID="terra"
 TERRA_URL="https://repos.fyralabs.com/terra\$releasever"
 CONFIG_DIR="$FM_FEDORA_PATH/config/umbriel"
 
+# Terra is needed only for this install. Disable it on every exit path —
+# success, handled failure, or an unexpected abort — so routine `dnf upgrade`
+# keeps the installed Umbriel build pinned. Self-clearing: the first call
+# removes the trap so later exits do not repeat the work.
+disable_terra() {
+    trap - EXIT
+    for repo_file in /etc/yum.repos.d/terra*.repo; do
+        [[ -f "$repo_file" ]] || continue
+        sudo sed -i -E 's/^enabled[[:space:]]*=[[:space:]]*1.*/enabled=0/' "$repo_file"
+    done
+    info "Terra repo disabled; Umbriel stays on the installed build"
+}
+
+trap disable_terra EXIT
+
 # 1. Terra repository — Umbriel has no Fedora package.
 if ! rpm -q terra-release >/dev/null 2>&1; then
     info "Adding Terra repository (bootstrap of the repo RPM only)..."
     # --nogpgcheck here applies ONLY to fetching terra-release itself.
-    # Package installs below are GPG-checked and gated in step 1b.
+    # Package installs below are GPG-checked and gated in step 1a.
     sudo dnf install -y --nogpgcheck \
         --repofrompath "${TERRA_REPO_ID},${TERRA_URL}" terra-release
 fi
 
-# 1a. Keep Terra out of routine `dnf upgrade`: enabled only per-command.
-for repo_file in /etc/yum.repos.d/terra*.repo; do
-    [[ -f "$repo_file" ]] || continue
-    sudo sed -i -E 's/^enabled=1/enabled=0/' "$repo_file"
-done
-info "Terra repo disabled by default; it is enabled only when installing Umbriel"
-
-# 1b. Gate: never install from a third-party repo that skips signature checks.
+# 1a. Gate: never install from a third-party repo that skips signature checks.
+#     Terra's repo file may omit gpgcheck entirely; an absent setting inherits
+#     dnf's default (gpgcheck=True), so only an explicit gpgcheck=0 blocks.
 if grep -rhqE '^gpgcheck=0' /etc/yum.repos.d/terra*.repo 2>/dev/null; then
     error "Terra repo has gpgcheck=0 — refusing to install from it"
     error "Fix /etc/yum.repos.d/terra*.repo before re-running"
-    return 1
-fi
-if ! grep -rhqE '^gpgcheck=1' /etc/yum.repos.d/terra*.repo 2>/dev/null; then
-    error "Terra repo does not declare gpgcheck=1 — refusing to install from it"
-    error "Fix /etc/yum.repos.d/terra*.repo before re-running"
+    disable_terra
     return 1
 fi
 
 # 2. Install compositor and its portal backend. No session tools: the shell
 #    layers (Waybar, SwayNC, Ghostty, Vicinae, gtklock, …) are installed by
 #    their own parked modules.
-sudo dnf install -y --enablerepo='terra*' "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG"
+install_umbriel() {
+    sudo dnf install -y --enablerepo='terra*' "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG"
 
-# xdg-desktop-portal is the front end Umbriel's backend plugs into; the GTK
-# backend covers the portals Umbriel does not implement itself.
-sudo dnf install -y xdg-desktop-portal xdg-desktop-portal-gtk
+    # xdg-desktop-portal is the front end Umbriel's backend plugs into; the GTK
+    # backend covers the portals Umbriel does not implement itself.
+    sudo dnf install -y xdg-desktop-portal xdg-desktop-portal-gtk
+}
 
-command -v umbriel >/dev/null 2>&1 || { error "umbriel binary not found after install"; return 1; }
+if ! install_umbriel; then
+    disable_terra
+    error "Umbriel installation failed — see the dnf output above"
+    return 1
+fi
+disable_terra
+
+command -v umbriel >/dev/null 2>&1 || { disable_terra; error "umbriel binary not found after install"; return 1; }
 success "Umbriel $(rpm -q --qf '%{VERSION}' "$UMBRIEL_PKG") installed"
 
 # 3. Config. Umbriel never creates a user config on its own.
@@ -143,4 +156,4 @@ verify_umbriel_install() {
 
 verify_umbriel_install
 
-success "Umbriel core configured."
+success "Umbriel installed successfully."
