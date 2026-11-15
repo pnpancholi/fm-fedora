@@ -4,6 +4,14 @@
 # Reference: https://docs.noctalia.dev/umbriel/
 
 # ==============================================================================
+# Includes
+# ==============================================================================
+# Optional: bundled animation preset for the workspace reveal transition. A
+# missing file is ignored, and Umbriel falls back to the native slide.
+[include.optional]
+files = ["/usr/share/umbriel/effects/animation/workspace_wipe/effect.toml"]
+
+# ==============================================================================
 # General
 # ==============================================================================
 [general]
@@ -85,6 +93,17 @@ offset_x = 0
 offset_y = 0
 
 # ==============================================================================
+# Animation
+# ==============================================================================
+# Workspace switch: reveal composites both scenes with the workspace_wipe
+# shader instead of sliding the desktop. Without that preset Umbriel reports a
+# diagnostic and uses the native slide.
+[animation.workspaces]
+style = "reveal"
+effect = "workspace_wipe"
+curve = "snappy"
+
+# ==============================================================================
 # Layout — dwindle
 # ==============================================================================
 [layout]
@@ -110,7 +129,7 @@ blur_optimized = false
 [[window_rule]]
 match.app_id = "^dev.noctalia.Noctalia$"
 default_floating = true
-default_size = [1020, 900]
+default_floating_size_px = { width = 1020, height = 900 }
 
 # ==============================================================================
 # Keybinds
