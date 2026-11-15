@@ -66,6 +66,9 @@ concave_edge_corners = false
 margin_ends = 0
 margin_edge = 0
 padding = 10
+# Even gap between widgets inside a lane. The left lane has one widget and the
+# center lane one, so this effectively only widens the right-side icons.
+widget_spacing = 10
 
 # Left: workspace numbers only — no launcher/search.
 # Right: status glyphs, then control center. Volume/brightness/notifications
@@ -132,3 +135,17 @@ show_label = false
 # radio.
 [widget.network]
 show_label = false
+
+# Control center — Tabler "adjustments-alt": two slider rows with the knobs at
+# opposite ends.
+[widget.control-center]
+glyph = "adjustments-alt"
+
+# ==============================================================================
+# Shell panels
+# ==============================================================================
+[shell.panel]
+control_center_placement = "attached"
+control_center_position = "auto"
+# Anchor the panel under the widget that was clicked instead of the bar center.
+open_near_click_control_center = true
