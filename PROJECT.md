@@ -5,5 +5,5 @@
 A [Omakub](https://omarchy.org/omakub/) inspired project to setup a productive and efficient Fedora Workstation. 
 
 Goal: To reproduce a productive and sleek workstation on Fedora.
-Target Platform: Fedora 44
+Target Platform: Fedora 45
 Core Desktop Environment: Wayland, Umbriel, Vicinae

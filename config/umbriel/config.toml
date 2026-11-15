@@ -8,8 +8,8 @@
 # ==============================================================================
 [general]
 mod_key = "Super"
-# Bare Umbriel session: nothing is autostarted.
-autostart = []
+# Noctalia owns the bar, wallpaper, panels and notifications.
+autostart = ["noctalia"]
 
 # Variables for Umbriel and everything it starts. Umbriel publishes these to the
 # systemd user manager; it owns XDG_CURRENT_DESKTOP, so it is not set here.
@@ -98,18 +98,19 @@ preserve_split = false
 # ==============================================================================
 # Window rules
 # ==============================================================================
-# Blur rules for shell surfaces — re-enable with the matching tool.
-# [[layer_rule]]
-# match.namespace = "^waybar$"
-# blur = true
-#
-# [[layer_rule]]
-# match.namespace = "^swaync$"
-# blur = true
-#
-# [[layer_rule]]
-# match.namespace = "^vicinae$"
-# blur = true
+# Noctalia publishes blur regions for its own layer surfaces; this rule enables
+# them (bar, notifications, panels, OSD). Layer blur is off by default.
+[[layer_rule]]
+match.namespace = "^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+blur = true
+blur_ignore_alpha = 0.6
+blur_optimized = false
+
+# Noctalia's settings window: floating, predictable size.
+[[window_rule]]
+match.app_id = "^dev.noctalia.Noctalia$"
+default_floating = true
+default_size = [1020, 900]
 
 # ==============================================================================
 # Keybinds
@@ -171,6 +172,11 @@ preserve_split = false
 
 "Mod+0" = { action = "overview-toggle", repeat = false }
 "Mod+O" = { action = "overview-toggle", repeat = false }
+
+# Noctalia IPC — launcher, control center, settings.
+"Mod+Space" = { action = "spawn noctalia msg panel-toggle launcher", repeat = false }
+"Mod+S" = { action = "spawn noctalia msg panel-toggle control-center", repeat = false }
+"Mod+Comma" = { action = "spawn noctalia msg settings-toggle", repeat = false }
 
 "Mod+Shift+Escape" = { action = "shortcuts-inhibit-toggle", allow_when_inhibited = true, repeat = false }
 

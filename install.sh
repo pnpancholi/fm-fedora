@@ -35,14 +35,14 @@ info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$
 # Core modules
 # Parked while the new shell layers land; re-enable each module as its Umbriel
 # replacement is ready.
-#    install/core/03-waybar.sh
 #    install/core/04-ghostty.sh
 #    install/core/05-swaync.sh
 #    install/core/06-vicinae.sh
 #    install/core/07-gtklock.sh
 for script in \
     "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
-    "$FM_FEDORA_PATH"/install/core/02-umbriel.sh; do
+    "$FM_FEDORA_PATH"/install/core/02-umbriel.sh \
+    "$FM_FEDORA_PATH"/install/core/03-noctalia-env.sh; do
     info "-- $(basename "$script")"
     source "$script"
 done
