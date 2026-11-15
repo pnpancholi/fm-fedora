@@ -192,8 +192,10 @@ default_floating_size_px = { width = 1020, height = 900 }
 "Mod+0" = { action = "overview-toggle", repeat = false }
 "Mod+O" = { action = "overview-toggle", repeat = false }
 
-# Noctalia IPC — launcher, control center, settings.
-"Mod+Space" = { action = "spawn noctalia msg panel-toggle launcher", repeat = false }
+# Launcher is Vicinae, not Noctalia's — see install/core/04-desktop-env.sh.
+"Mod+Space" = { action = "spawn vicinae toggle", repeat = false }
+
+# Noctalia IPC — control center, settings.
 "Mod+S" = { action = "spawn noctalia msg panel-toggle control-center", repeat = false }
 "Mod+Comma" = { action = "spawn noctalia msg settings-toggle", repeat = false }
 

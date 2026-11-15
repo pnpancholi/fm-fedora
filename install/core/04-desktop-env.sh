@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PKG: vicinae (COPR: scottames/vicinae)
+# REPO: Fedora default + scottames/vicinae COPR
+source "$FM_FEDORA_PATH/lib/helpers.sh"
+
+info "Installing Vicinae (launcher)..."
+
+# ── Hardcoded values (edit here, not inline) ──
+VICINAE_PKG="vicinae"
+THEME_ID="monochrome"
+CONFIG_DIR="$FM_FEDORA_PATH/config/vicinae"
+THEME_SRC="$CONFIG_DIR/themes/${THEME_ID}.toml"
+
+USER_THEME_DIR="$HOME/.local/share/vicinae/themes"
+THEME_DEST="$USER_THEME_DIR/${THEME_ID}.toml"
+SETTINGS_DEST="$HOME/.config/vicinae/settings.json"
+
+# Memory guard rails. The values are deliberately generous for a launcher:
+# most of what `systemctl --user show vicinae -p MemoryCurrent` reports is
+# reclaimable page cache (file index, extension bundles), which the kernel drops
+# before MemoryHigh starts throttling, so the cap only bites when anonymous
+# memory actually runs away. Restart=on-failure keeps a launcher available
+# after a hard cap kill instead of leaving the keybind dead.
+DROPIN_DIR="$HOME/.config/systemd/user/vicinae.service.d"
+DROPIN="$DROPIN_DIR/memory.conf"
+
+# 1. COPR + package
+enable_copr "scottames/vicinae"
+sudo dnf install -y "$VICINAE_PKG"
+
+# 2. Theme. Vicinae drops files into the user theme dir at startup and hot
+#    reloads on change; the id is the filename without .toml.
+if [[ ! -f "$THEME_SRC" ]]; then
+    error "Theme missing in repo: $THEME_SRC"
+    return 1
+fi
+write_config_ensure "$THEME_DEST" "$(cat "$THEME_SRC")"
+
+# 3. Settings. "theme.*.name = monochrome" is what actually selects the theme;
+#    `vicinae theme set` writes the same key through the running server.
+write_config_ensure "$SETTINGS_DEST" "$(cat "$CONFIG_DIR/settings.json")"
+
+# 4. Memory guard rail
+write_config_ensure "$DROPIN" "[Service]
+MemoryAccounting=yes
+MemoryHigh=400M
+MemoryMax=512M
+Restart=on-failure
+RestartSec=2"
+
+# 5. One launch path only: the user service. No autostart entry, so a second
+#    daemon never ends up running beside it.
+if systemctl --user show-environment >/dev/null 2>&1; then
+    systemctl --user daemon-reload
+    systemctl --user enable vicinae.service
+    # Starting needs a live user manager + session; enable alone is enough at
+    # install time, the unit comes up on next login.
+    systemctl --user restart vicinae.service 2>/dev/null || true
+else
+    warn "No systemd user manager in this environment — enable vicinae.service after login"
+fi
+
+# ── Verification ──
+verify_vicinae_install() {
+    info "Verifying Vicinae installation..."
+
+    local failed=0
+
+    if ! rpm -q "$VICINAE_PKG" >/dev/null 2>&1; then
+        warn "Package missing: $VICINAE_PKG"
+        failed=1
+    fi
+
+    if ! command -v vicinae >/dev/null 2>&1; then
+        warn "vicinae binary not found"
+        failed=1
+    fi
+
+    for f in "$SETTINGS_DEST" "$THEME_DEST" "$DROPIN"; do
+        if [[ ! -f "$f" ]]; then
+            warn "Missing: $f"
+            failed=1
+        fi
+    done
+
+    if systemctl --user show-environment >/dev/null 2>&1; then
+        if ! systemctl --user is-enabled --quiet vicinae.service; then
+            warn "vicinae.service not enabled"
+            failed=1
+        fi
+    fi
+
+    if [[ $failed -eq 0 ]]; then
+        success "Vicinae installation verified."
+    else
+        error "Verification failed. Check warnings above."
+        return 1
+    fi
+}
+
+verify_vicinae_install
+
+success "Vicinae installed. It replaces the Noctalia launcher on Mod+Space."

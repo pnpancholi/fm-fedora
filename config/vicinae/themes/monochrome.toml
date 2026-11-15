@@ -1,0 +1,81 @@
+# Vicinae theme — Monochrome
+#
+# Mirrors config/noctalia/palettes/Monochrome.json (dark variant) so the
+# launcher matches the bar and panels. Installed to
+# ~/.local/share/vicinae/themes/monochrome.toml by install/core/04-desktop-env.sh.
+#
+# Only the role -> hex mapping lives here; everything else is inherited from
+# vicinae-dark. Validate with: vicinae theme --help (themes are hot-reloaded).
+
+[meta]
+name = "Monochrome"
+description = "fm-fedora monochrome palette, shared with the Noctalia shell"
+variant = "dark"
+inherits = "vicinae-dark"
+
+# surface / on_surface / primary / on_primary / surface_container /
+# outline_variant / on_surface_variant / tertiary / error / hover / on_hover
+[colors.core]
+accent = "#aaaaaa"                 # primary
+accent_foreground = "#111111"      # on_primary
+background = "#111111"             # surface
+foreground = "#ffffff"             # on_surface
+secondary_background = "#121212"   # surface_container
+border = "#3c3c3c"                 # outline_variant
+
+[colors.main_window]
+border = "colors.core.border"
+footer = { background = "colors.core.secondary_background" }
+
+[colors.settings_window]
+border = "colors.core.border"
+
+[colors.text]
+default = "colors.core.foreground"
+muted = "#636363"                  # on_surface_variant
+danger = "#dddddd"                 # error
+success = "#cccccc"                # tertiary
+placeholder = "#828282"            # terminal.white
+selection = { background = "#cccccc", foreground = "#111111" }  # hover / on_hover
+
+[colors.input]
+border = "colors.core.border"
+border_focus = "colors.core.accent"
+border_error = "#dddddd"           # error
+
+[colors.button.primary]
+background = "#121212"             # surface_container
+foreground = "colors.core.foreground"
+focus = { outline = "colors.core.accent" }
+
+[colors.list.item.hover]
+foreground = "colors.core.foreground"
+
+[colors.list.item.selection]
+background = "#cccccc"             # hover
+foreground = "#111111"             # on_hover
+secondary_background = "#cccccc"
+secondary_foreground = "#111111"
+
+[colors.grid.item]
+background = "#121212"             # surface_container
+hover = { outline = "#cccccc" }    # hover
+selection = { outline = "#cccccc" }
+
+# Accent hues stay inside the palette's grey ramp — no colour leaks in.
+[colors.accents]
+blue = "#a7a7a7"                   # secondary
+green = "#cccccc"                  # tertiary
+magenta = "#dddddd"                # error
+orange = "#aaaaaa"                 # primary
+red = "#dddddd"                    # error
+yellow = "#aaaaaa"                 # primary
+cyan = "#cccccc"                   # tertiary
+purple = "#a7a7a7"                 # secondary
+
+[colors.scrollbars]
+background = "#3c3c3c"             # outline_variant
+
+[colors.loading]
+bar = "#aaaaaa"                    # primary
+spinner = "#ffffff"                # on_surface

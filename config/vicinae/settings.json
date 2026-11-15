@@ -1,33 +1,34 @@
-{
-  "imports": [],
+// fm-fedora — Vicinae settings
+//
+// Written to ~/.config/vicinae/settings.json by install/core/04-desktop-env.sh.
+// Vicinae merges this over its defaults and rewrites the file when settings are
+// changed in the GUI, so keep this file in sync with GUI changes.
+//
+// Shape follows Vicinae v0.17+ (the config overhaul): launcher window keys live
+// under "launcher_window"; the old "window"/"renderer"/"vsync"/"server" keys are
+// no longer read.
 
-  // Window (match Ghostty)
-  "window": {
-    "decorations": false,
-    "padding_x": 8,
-    "padding_y": 8,
-    "opacity": 0.9,
-    "blur": true
-  },
+{
+  "$schema": "https://vicinae.com/schemas/config.json",
+  "imports": [],
 
   // Font (match Ghostty: JetBrains Mono 11)
   "font": {
     "normal": { "family": "JetBrains Mono", "size": 11 }
   },
 
-  // Theme (built-in tokyo-night)
+  // Theme — monochrome palette shared with the Noctalia shell
+  // (config/vicinae/themes/monochrome.toml)
   "theme": {
-    "dark": { "name": "tokyo-night" },
-    "light": { "name": "tokyo-night-light" }
+    "dark": { "name": "monochrome", "icon_theme": "auto" },
+    "light": { "name": "monochrome", "icon_theme": "auto" }
   },
 
-  // Performance
-  "renderer": "auto",
-  "vsync": true,
-
-  // Daemon for fast startup
-  "server": {
-    "enabled": true,
-    "auto_start": true
+  // Window (match Ghostty: 8px padding, 0.9 opacity, rounded)
+  "launcher_window": {
+    "opacity": 0.9,
+    "rounding": 10,
+    "material": "auto",
+    "blur": { "enabled": true }
   }
 }
