@@ -68,9 +68,11 @@ margin_edge = 0
 padding = 10
 
 # Left: workspace numbers only — no launcher/search.
+# Right: status glyphs, then control center. Volume/brightness/notifications
+# live in the control center now, not on the bar.
 start = ["workspaces"]
 center = ["clock"]
-end = ["network", "volume", "brightness", "battery", "notifications", "control-center"]
+end = ["bluetooth", "network", "battery", "control-center"]
 
 # ==============================================================================
 # Widgets
@@ -86,3 +88,47 @@ change_color_on_hover = false
 focused_color = "on_surface"
 occupied_color = "on_surface_variant"
 empty_color = "outline_variant"
+
+# Center: time with day and date on one line, full date on hover.
+[widget.clock]
+format = "{:%a %d %b  %H:%M}"
+tooltip_format = "{:%A, %B %d, %Y}"
+
+# Clock is display-only: no panel on click, no scroll actions. Hover tooltip
+# still works (bindings do not disable it).
+[widget.clock.actions]
+left = "none"
+right = "none"
+middle = "none"
+back = "none"
+forward = "none"
+scroll_up = "none"
+scroll_down = "none"
+
+# Right: battery — glyph swaps to the charging/plugged icon on its own, label is
+# the percentage. Display only, no click or scroll actions.
+[widget.battery]
+display_mode = "glyph"
+show_label = true
+label_content = "percent"
+
+[widget.battery.actions]
+left = "none"
+right = "none"
+middle = "none"
+back = "none"
+forward = "none"
+scroll_up = "none"
+scroll_down = "none"
+
+# Bluetooth — icon only. Built-in actions kept: left opens the control-center
+# Bluetooth tab (adapter power, paired/connected devices, pairing), right
+# toggles the adapter.
+[widget.bluetooth]
+show_label = false
+
+# Network — icon only. Built-in actions kept: left opens the control-center
+# Network tab (Wi-Fi toggle, current SSID, known networks), right toggles the
+# radio.
+[widget.network]
+show_label = false
