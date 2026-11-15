@@ -10,7 +10,7 @@ set -euo pipefail
 #
 #   1. It refuses to start unless XDG_CURRENT_DESKTOP contains "GNOME"
 #      (shell/cc-application.c, is_supported_desktop). Our session reports
-#      "mango", so the override is scoped to the child process only.
+#      "umbriel", so the override is scoped to the child process only.
 #   2. It is a GApplication: a second invocation is forwarded over D-Bus to the
 #      running instance and exits 0 even when the requested panel id does not
 #      exist. Failures therefore have to be caught up front against --list,

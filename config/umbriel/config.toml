@@ -8,16 +8,8 @@
 # ==============================================================================
 [general]
 mod_key = "Super"
-# Same session as the old mango config, minus the compositor itself.
-autostart = [
-    "waybar",
-    "swaync",
-    "swaybg -i ~/Pictures/wallpapers/nordic-wp.png",
-    "/usr/libexec/polkit-gnome-authentication-agent-1",
-    "~/.local/bin/fm-vm-clipboard",
-    "sh -c 'wl-paste --type text --watch cliphist store'",
-    "swayidle -w timeout 300 'gtklock' timeout 600 'wlopm --off *' resume 'wlopm --on *' before-sleep 'gtklock'",
-]
+# Bare Umbriel session: nothing is autostarted.
+autostart = []
 
 # Variables for Umbriel and everything it starts. Umbriel publishes these to the
 # systemd user manager; it owns XDG_CURRENT_DESKTOP, so it is not set here.
@@ -46,7 +38,7 @@ natural_scroll = true
 disable_while_typing = true
 
 # ==============================================================================
-# Appearance — Tokyo Night, matching the old mango theme
+# Appearance — Tokyo Night
 # ==============================================================================
 [colors]
 background = "#1e1e1eff"
@@ -93,7 +85,7 @@ offset_x = 0
 offset_y = 0
 
 # ==============================================================================
-# Layout — dwindle, as the old mango tags were
+# Layout — dwindle
 # ==============================================================================
 [layout]
 mode = "dwindle"
@@ -104,50 +96,32 @@ extent_presets = [0.333, 0.5, 0.667]
 preserve_split = false
 
 # ==============================================================================
-# Window rules — float the same tools mango floated
+# Window rules
 # ==============================================================================
-[[window_rule]]
-match.app_id = "^pavucontrol$"
-default_floating = true
-
-[[window_rule]]
-match.app_id = "^nm-connection-editor$"
-default_floating = true
-
-[[window_rule]]
-match.app_id = "^blueman-manager$"
-default_floating = true
-
-[[window_rule]]
-match.app_id = "^swayimg$"
-default_floating = true
-
-# Blur the surfaces that already draw translucency.
-[[layer_rule]]
-match.namespace = "^waybar$"
-blur = true
-
-[[layer_rule]]
-match.namespace = "^swaync$"
-blur = true
-
-[[layer_rule]]
-match.namespace = "^vicinae$"
-blur = true
+# Blur rules for shell surfaces — re-enable with the matching tool.
+# [[layer_rule]]
+# match.namespace = "^waybar$"
+# blur = true
+#
+# [[layer_rule]]
+# match.namespace = "^swaync$"
+# blur = true
+#
+# [[layer_rule]]
+# match.namespace = "^vicinae$"
+# blur = true
 
 # ==============================================================================
 # Keybinds
 # ==============================================================================
-# Session, launch and window actions mirror the old mango binds. Mod+0 keeps
-# the overview where SUPER+0 used to be; Mod+O is also accepted.
+# Session, launch and window actions. Mod+0 opens the overview; Mod+O is also
+# accepted.
 [keybinds]
 "Mod+Shift+C" = { action = "config-reload", repeat = false }
 "Mod+Shift+E" = { action = "session-quit", repeat = false }
 
-"Mod+Return" = { action = "spawn ghostty", repeat = false }
-"Mod+Space" = { action = "spawn vicinae toggle", repeat = false }
-"Mod+N" = { action = "spawn swaync-client -t -sw", repeat = false }
-"Mod+Escape" = { action = "spawn gtklock", repeat = false }
+# Terminal: Fedora's default (Ptyxis), RPM or flatpak.
+"Mod+Return" = { action = "spawn sh -c 'command -v ptyxis >/dev/null && exec ptyxis || exec flatpak run org.gnome.Ptyxis'", repeat = false }
 
 "Mod+Q" = { action = "window-close", repeat = false }
 "Mod+F" = { action = "window-toggle-fullscreen", repeat = false }
@@ -200,16 +174,7 @@ blur = true
 
 "Mod+Shift+Escape" = { action = "shortcuts-inhibit-toggle", allow_when_inhibited = true, repeat = false }
 
-# Media and brightness keys, from any input device.
+# Media keys, from any input device.
 "XF86AudioRaiseVolume" = "spawn wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
 "XF86AudioLowerVolume" = "spawn wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
 "XF86AudioMute" = { action = "spawn wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", repeat = false }
-"XF86AudioPlay" = { action = "spawn playerctl play-pause", repeat = false }
-"XF86AudioNext" = "spawn playerctl next"
-"XF86AudioPrev" = "spawn playerctl previous"
-"XF86MonBrightnessUp" = "spawn brightnessctl set +5%"
-"XF86MonBrightnessDown" = "spawn brightnessctl set 5%-"
-
-# Screenshots
-"Print" = "spawn sh -c 'mkdir -p ~/Pictures/screenshots && grim ~/Pictures/screenshots/$(date +%s).png'"
-"Shift+Print" = "spawn sh -c 'mkdir -p ~/Pictures/screenshots && grim -g \"$(slurp)\" ~/Pictures/screenshots/$(date +%s).png'"

@@ -2,10 +2,7 @@
 set -euo pipefail
 
 # PKG: umbriel-nightly xdg-desktop-portal-umbriel-nightly
-#      swaybg swayidle swayimg slurp grim wlopm
 #      xdg-desktop-portal xdg-desktop-portal-gtk
-#      brightnessctl playerctl pavucontrol wl-clipboard cliphist
-#      [spice-vdagent xclip in VMs]
 # REPO: terra (repos.fyralabs.com; disabled by default, enabled per-command)
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
@@ -50,27 +47,15 @@ if ! grep -rhqE '^gpgcheck=1' /etc/yum.repos.d/terra*.repo 2>/dev/null; then
     return 1
 fi
 
-# 1c. Drop the abandoned swaylock-effects COPR and the old generated swaylock
-#     config; the lock screen is gtklock (07-gtklock.sh).
-sudo rm -f "/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:pheeef:swaylock-effects.repo"
-rm -f "$HOME/.config/swaylock/config" 2>/dev/null || true
-rmdir "$HOME/.config/swaylock" 2>/dev/null || true
-
-# 2. Install compositor and its portal backend, then session tools
+# 2. Install compositor and its portal backend. No session tools: the shell
+#    layers (Waybar, SwayNC, Ghostty, Vicinae, gtklock, …) are installed by
+#    their own parked modules.
 sudo dnf install -y --enablerepo='terra*' "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG"
 
-CLIP_PKGS=(wl-clipboard cliphist)
-if systemd-detect-virt --quiet 2>/dev/null; then
-    CLIP_PKGS+=(spice-vdagent xclip)
-fi
+# xdg-desktop-portal is the front end Umbriel's backend plugs into; the GTK
+# backend covers the portals Umbriel does not implement itself.
+sudo dnf install -y xdg-desktop-portal xdg-desktop-portal-gtk
 
-# No xdg-desktop-portal-wlr: Umbriel ships its own ScreenCast/Screenshot backend.
-sudo dnf install -y --allowerasing --skip-unavailable \
-    swaybg swayidle swayimg slurp grim wlopm \
-    xdg-desktop-portal xdg-desktop-portal-gtk \
-    brightnessctl playerctl pavucontrol "${CLIP_PKGS[@]}"
-
-# Lock screen is installed separately by 07-gtklock.sh (gtklock).
 command -v umbriel >/dev/null 2>&1 || { error "umbriel binary not found after install"; return 1; }
 success "Umbriel $(rpm -q --qf '%{VERSION}' "$UMBRIEL_PKG") installed"
 
@@ -79,14 +64,6 @@ write_config_ensure "$HOME/.config/umbriel/config.toml" "$(cat "$CONFIG_DIR/conf
 
 # 4. environment.d for systemd/user services (all GPUs)
 mkdir -p "$HOME/.config/environment.d"
-
-# 4a. Retire the old mango env file: environment.d is applied across the whole
-#     session, so a leftover mango.conf would keep XDG_CURRENT_DESKTOP=mango
-#     for systemd services. Umbriel owns its own session variables.
-if [[ -f "$HOME/.config/environment.d/mango.conf" ]]; then
-    mv "$HOME/.config/environment.d/mango.conf" "$HOME/.config/environment.d/mango.conf.bak"
-    info "Retired environment.d/mango.conf (backed up as .bak)"
-fi
 write_config_if_missing "$HOME/.config/environment.d/umbriel.conf" "QT_QPA_PLATFORM=wayland
 QT_QPA_PLATFORMTHEME=qt5ct
 SDL_VIDEODRIVER=wayland
@@ -113,24 +90,14 @@ EOF
     fi
 fi
 
-# 6. Wallpaper
-mkdir -p "$HOME/Pictures/wallpapers"
-WALLPAPER_SRC="$FM_FEDORA_PATH/assets/nordic-wp.png"
-WALLPAPER_DEST="$HOME/Pictures/wallpapers/nordic-wp.png"
-if [[ -f "$WALLPAPER_SRC" && ! -f "$WALLPAPER_DEST" ]]; then
-    cp "$WALLPAPER_SRC" "$WALLPAPER_DEST"
-    info "Installed default wallpaper"
-fi
-
 # ── Verification ──
 verify_umbriel_install() {
     info "Verifying Umbriel installation..."
 
     local failed=0
 
-    for pkg in "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG" swaybg swayidle swayimg slurp grim wlopm \
-               xdg-desktop-portal xdg-desktop-portal-gtk \
-               brightnessctl playerctl pavucontrol wl-clipboard cliphist; do
+    for pkg in "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG" \
+               xdg-desktop-portal xdg-desktop-portal-gtk; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
             failed=1

@@ -18,9 +18,9 @@
         "pulseaudio",
         "custom/menu"
     ],
-    /* Waybar 0.15 has no mango/* modules: mango speaks ext-workspace-v1,
+    /* Waybar 0.15 has no Umbriel modules: Umbriel speaks ext-workspace-v1,
      * which Waybar exposes as ext/workspaces. ignore-hidden keeps only
-     * tags in the current view; the protocol has no occupancy info. */
+     * workspaces that are not hidden; the protocol has no occupancy info. */
     "ext/workspaces": {
         "format": "{name}",
         "ignore-hidden": true,

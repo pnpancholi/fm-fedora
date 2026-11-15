@@ -33,10 +33,8 @@ done
 info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\""
 
 # Core modules
-# Parked while the compositor switch settles; re-enable as the new shell layers
-# land. 02-mango.sh is also parked so the old session can be restored by
-# swapping it back in for 02-umbriel.sh.
-#    install/core/02-mango.sh
+# Parked while the new shell layers land; re-enable each module as its Umbriel
+# replacement is ready.
 #    install/core/03-waybar.sh
 #    install/core/04-ghostty.sh
 #    install/core/05-swaync.sh

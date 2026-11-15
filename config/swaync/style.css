@@ -11,7 +11,7 @@
 
 :root {
     /* surfaces */
-    --fm-bg:         #1e1e1e;   /* == waybar bar bg == mango theme_bg */
+    --fm-bg:         #1e1e1e;   /* == waybar bar bg == Umbriel colors.background */
     --fm-bg-alt:     #24283b;
     --fm-bg-hover:   #2a2f45;
     --fm-border:     #292e42;
@@ -21,7 +21,7 @@
     --fm-fg-dim:     #787c99;
 
     /* accents */
-    --fm-accent:     #7aa2f7;   /* == mango theme_primary */
+    --fm-accent:     #7aa2f7;   /* == Umbriel colors.accent_primary */
     --fm-red:        #f7768e;
 
     /* SwayNC's own variables */

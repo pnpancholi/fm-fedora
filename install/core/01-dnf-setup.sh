@@ -23,10 +23,10 @@ fi
 
 # Full upgrade only outside a graphical session.
 #
-# `fm upgrade` runs this module from a terminal inside Mango. Upgrading there
-# replaces GTK/GLib/mangowm underneath the running bar and compositor, which
-# kills them mid-redraw — and `exec_once=waybar` in the mango config never
-# respawns the bar, so the session loses it until the next login.
+# `fm upgrade` runs this module from a terminal inside Umbriel. Upgrading there
+# replaces GTK/GLib/umbriel underneath the running bar and compositor, which
+# kills them mid-redraw — and the autostart entry for waybar never respawns the
+# bar, so the session loses it until the next login.
 #
 # boot.sh is unaffected: a first install has no session, so the upgrade runs.
 if [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]]; then

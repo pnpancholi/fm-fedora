@@ -1,7 +1,7 @@
 /* Waybar — fm-fedora
  *
  * Tokyo Night drawn as one flat surface: the bar is painted the same colour as
- * mango's theme_bg, so bar and tiling gaps read as a single dark plane.
+ * Umbriel's background, so bar and tiling gaps read as a single dark plane.
  *
  * Structure:
  *   1. base surface
@@ -15,11 +15,11 @@
 
 /* ── Palette ─────────────────────────────────────────────────────────────── */
 
-@define-color bg         #1e1e1e;   /* == mango theme_bg */
+@define-color bg         #1e1e1e;   /* == Umbriel colors.background */
 @define-color bg-alt     #24283b;
 @define-color fg         #c0caf5;
 @define-color fg-dim     #787c99;
-@define-color accent     #7aa2f7;   /* == mango theme_primary */
+@define-color accent     #7aa2f7;   /* == Umbriel colors.accent_primary */
 @define-color accent-alt #bb9af7;
 @define-color green      #9ece6a;
 @define-color yellow     #e0af68;
