@@ -3,7 +3,7 @@
 # Real escape bytes, not literal backslash sequences: these are passed through
 # printf %s arguments, which do not interpret escapes.
 c_reset=$'\033[0m'
-c_brand=$'\033[38;2;220;20;60m'   # crimson
+c_brand=$'\033[38;2;167;139;250m'   # violet
 c_dim=$'\033[2m'
 
 # for logging colors

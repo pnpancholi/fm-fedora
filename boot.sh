@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-c_reset="\033[0m"
-c_brand="\033[38;2;220;20;60m"
+c_reset=$'\033[0m'
+c_brand=$'\033[38;2;167;139;250m'   # violet
 
 REPO_URL="https://github.com/pnpancholi/fm-fedora.git"
 REPO_BRANCH="main"

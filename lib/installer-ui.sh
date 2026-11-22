@@ -171,6 +171,19 @@ ui__confirm_line() {
     fi
 }
 
+ui__choose_label() {
+    local entry="$1"
+    if [[ "$entry" == *::* ]]; then
+        printf '%s (%s)' "${entry%%::*}" "${entry#*::}"
+    else
+        printf '%s' "$entry"
+    fi
+}
+
+ui__choose_value() {
+    printf '%s' "${1%%::*}"
+}
+
 ui__choose_line() {
     local text="$1" selected="$2"
     text="$(ui__truncate "$text")"
@@ -196,10 +209,6 @@ ui_confirm() {
         if (( sel == 1 )); then return 0; else return 1; fi
     fi
 
-    if [[ -n "$hint" ]]; then
-        printf '  %s%s%s\n' "$c_dim" "$(ui__truncate "$hint")" "$c_reset"
-    fi
-
     while true; do
         ui__confirm_line "$prompt" "$sel"
         IFS= read -rsn1 key || key=""
@@ -220,14 +229,15 @@ ui_confirm() {
         esac
     done
 
-    # Collapse the toggle into a plain `question   answer` line.
+    # Collapse the toggle into a plain `question   answer` line, then show any
+    # follow-up hint underneath.
     printf '\r\033[2K'
-    if [[ -n "$hint" ]]; then
-        printf '\033[1A'
-    fi
     answer="No"
     if (( sel )); then answer="Yes"; fi
     printf '\r\033[2K  %s   %s\n' "$prompt" "$answer"
+    if [[ -n "$hint" ]]; then
+        printf '  %s%s%s\n' "$c_dim" "$(ui__truncate "$hint")" "$c_reset"
+    fi
     if (( sel == 1 )); then return 0; else return 1; fi
 }
 
@@ -246,7 +256,7 @@ ui_choose() {
     local sel=$(( default_index - 1 ))
 
     if [[ ! -t 0 || ! -t 1 ]]; then
-        UI_ANSWER="${items[$sel]}"
+        UI_ANSWER="$(ui__choose_value "${items[$sel]}")"
         printf '  %s   %s\n' "$prompt" "$UI_ANSWER"
         return
     fi
@@ -255,7 +265,7 @@ ui_choose() {
     for (( i=0; i<count; i++ )); do
         selected=0
         if (( i == sel )); then selected=1; fi
-        ui__choose_line "${items[$i]}" "$selected"
+        ui__choose_line "$(ui__choose_label "${items[$i]}")" "$selected"
     done
 
     while true; do
@@ -284,7 +294,7 @@ ui_choose() {
         for (( i=0; i<count; i++ )); do
             selected=0
             if (( i == sel )); then selected=1; fi
-            ui__choose_line "${items[$i]}" "$selected"
+            ui__choose_line "$(ui__choose_label "${items[$i]}")" "$selected"
         done
     done
 
@@ -295,7 +305,7 @@ ui_choose() {
         if (( i < count )); then printf '\n'; fi
     done
     printf '\033[%dA' "$count"
-    UI_ANSWER="${items[$sel]}"
+    UI_ANSWER="$(ui__choose_value "${items[$sel]}")"
     printf '\r\033[2K  %s   %s\n' "$prompt" "$UI_ANSWER"
 }
 
@@ -326,22 +336,18 @@ ui_collect_answers() {
         FM_ANSWER_DOCK="no"
     fi
 
-    local password_default=5
+    local password_default=1
     case "$FM_ANSWER_PASSWORD_MANAGER" in
-        "1Password")   password_default=1 ;;
-        "Proton Pass") password_default=2 ;;
-        "Bitwarden")   password_default=3 ;;
-        "LastPass")    password_default=4 ;;
+        "1Password")   password_default=2 ;;
+        "Proton Pass") password_default=3 ;;
+        "Bitwarden")   password_default=4 ;;
+        "LastPass")    password_default=5 ;;
     esac
     ui_choose \
         "Do you already use a password manager?" \
-        "1Password|Proton Pass|Bitwarden|LastPass|Zoho Vault (free for personal use, recommended)" \
+        "Zoho Vault::free for personal use, recommended|1Password|Proton Pass|Bitwarden|LastPass" \
         "$password_default"
-    # Keep the saved value as the bare product name, not the display hint.
-    case "$UI_ANSWER" in
-        "Zoho Vault"*) FM_ANSWER_PASSWORD_MANAGER="Zoho Vault" ;;
-        *)             FM_ANSWER_PASSWORD_MANAGER="$UI_ANSWER" ;;
-    esac
+    FM_ANSWER_PASSWORD_MANAGER="$UI_ANSWER"
 
     local dev_default="y"
     if [[ "$FM_ANSWER_DEV" == "no" ]]; then
