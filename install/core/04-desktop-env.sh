@@ -75,9 +75,22 @@ fi
 
 # 6. Ghostty. Mod+Return and $TERMINAL (set in config/umbriel/config.toml) point
 #    at it, so it is the session's only terminal.
+#
+#    Any existing Ghostty build is removed first. Terra ships Ghostty as a split
+#    set (ghostty + ghostty-bash-completion/-shell-integration/-terminfo/… +
+#    libghostty-vt) and the scottames 1.4.0 single-package build owns those same
+#    files, so upgrading over it fails the RPM transaction on file conflicts.
+#    Keeping Terra out of the install transaction stops its set coming back.
 ui_step
 enable_copr "scottames/ghostty"
-ui_exec sudo dnf install -y "$GHOSTTY_PKG"
+
+mapfile -t ghostty_installed_pkgs < <(rpm -qa --qf '%{NAME}\n' | grep -E '^(lib)?ghostty' | sort -u)
+if (( ${#ghostty_installed_pkgs[@]} > 0 )); then
+    info "Removing existing Ghostty packages: ${ghostty_installed_pkgs[*]}"
+    ui_exec sudo dnf remove -y "${ghostty_installed_pkgs[@]}"
+fi
+
+ui_exec sudo dnf install -y --disablerepo='terra*' "$GHOSTTY_PKG"
 
 # 6a. GNOME Settings. Noctalia owns the bar and control centre, but the Wi-Fi,
 #     Bluetooth and power rows in bin/fm-settings shell out to this binary; no
