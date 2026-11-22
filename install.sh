@@ -43,6 +43,7 @@ FM_MODULES=(
     "$FM_FEDORA_PATH/install/core/02-umbriel.sh"
     "$FM_FEDORA_PATH/install/core/03-noctalia-env.sh"
     "$FM_FEDORA_PATH/install/core/04-desktop-env.sh"
+    "$FM_FEDORA_PATH/install/core/05-software-installation.sh"
 )
 
 ui_init "$(ui_count_steps "${FM_MODULES[@]}" "$FM_FEDORA_PATH/install.sh")"

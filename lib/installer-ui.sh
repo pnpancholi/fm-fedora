@@ -297,12 +297,138 @@ ui_choose() {
     printf '\r\033[2K%s   %s\n' "$prompt" "$UI_ANSWER"
 }
 
+# ── Multi-select selector ──
+# Disabled with the project-management question: Opera has no PWA subsystem,
+# so there was nothing for the answer to drive. Kept intact rather than
+# deleted — re-enable by removing the two `FM_PM_DISABLED` guard lines.
+#
+# Same drawing conventions as ui_choose, but any number of options can be
+# selected. An option literally named "Skip" is exclusive: choosing it clears
+# everything else, and choosing anything else clears it. Confirming with
+# nothing selected also answers "Skip", so the possible outcomes are every
+# combination of the real options plus Skip.
+#
+# Space or Tab toggles the option under the cursor, j/k or the arrow keys
+# move it, Enter confirms. Digits are deliberately not bound — a short list
+# does not need them, and ui_choose keeps that behaviour for itself.
+: <<'FM_PM_DISABLED'
+ui__multi_line() {
+    local text="$1" marked="$2" cursor="$3"
+    local box="[ ]"
+    if (( marked )); then
+        box="[x]"
+    fi
+    text="$(ui__truncate "$text")"
+    if (( cursor )); then
+        printf '%s❯%s %s %s\n' "$c_brand" "$c_reset" "$box" "$text"
+    else
+        printf '  %s%s %s%s\n' "$c_dim" "$box" "$text" "$c_reset"
+    fi
+}
+
+ui_choose_multi() {
+    local prompt="$1" options="$2"
+    local -a items=() marked=()
+    local IFS='|' opt
+    for opt in $options; do
+        items+=("$opt")
+        marked+=(0)
+    done
+
+    local count="${#items[@]}" i key esc cursor=0 skip_idx=-1
+
+    for (( i=0; i<count; i++ )); do
+        if [[ "${items[$i]}" == "Skip" ]]; then
+            skip_idx=$i
+            break
+        fi
+    done
+
+    # Nothing is ever pre-selected, so a non-interactive run answers Skip.
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        UI_ANSWER="Skip"
+        printf '%s   %s\n' "$prompt" "$UI_ANSWER"
+        return 0
+    fi
+
+    printf '%s\n' "$prompt"
+    for (( i=0; i<count; i++ )); do
+        ui__multi_line "${items[$i]}" "${marked[$i]}" $(( i == cursor ))
+    done
+
+    while true; do
+        IFS= read -rsn1 key || key=""
+        case "$key" in
+            ''|$'\n'|$'\r') break ;;
+            [Jj]) cursor=$(( (cursor + 1) % count )) ;;
+            [Kk]) cursor=$(( (cursor - 1 + count) % count )) ;;
+            ' '|$'\t')
+                if (( skip_idx >= 0 && cursor == skip_idx )); then
+                    # Toggling Skip: picking it clears every other option.
+                    if (( marked[cursor] )); then
+                        marked[cursor]=0
+                    else
+                        for (( i=0; i<count; i++ )); do marked[$i]=0; done
+                        marked[cursor]=1
+                    fi
+                elif (( marked[cursor] )); then
+                    marked[cursor]=0
+                else
+                    marked[cursor]=1
+                    # Anything real selected turns Skip off.
+                    if (( skip_idx >= 0 )); then marked[skip_idx]=0; fi
+                fi
+                ;;
+            $'\x1b')
+                IFS= read -rsn2 -t 0.1 esc || esc=""
+                case "$esc" in
+                    '[B'|'OB') cursor=$(( (cursor + 1) % count )) ;;
+                    '[A'|'OA') cursor=$(( (cursor - 1 + count) % count )) ;;
+                esac
+                ;;
+        esac
+
+        # Redraw the question + option block in place.
+        printf '\033[%dA' $(( count + 1 ))
+        printf '%s\n' "$prompt"
+        for (( i=0; i<count; i++ )); do
+            ui__multi_line "${items[$i]}" "${marked[$i]}" $(( i == cursor ))
+        done
+    done
+
+    # Collapse the block into one line: question + chosen answer.
+    printf '\033[%dA' $(( count + 1 ))
+    for (( i=0; i<=count; i++ )); do
+        printf '\r\033[2K'
+        if (( i < count )); then printf '\n'; fi
+    done
+    printf '\033[%dA' "$count"
+
+    UI_ANSWER=""
+    for (( i=0; i<count; i++ )); do
+        if (( marked[i] )) && [[ "${items[$i]}" != "Skip" ]]; then
+            if [[ -n "$UI_ANSWER" ]]; then
+                UI_ANSWER+=", "
+            fi
+            UI_ANSWER+="${items[$i]}"
+        fi
+    done
+    if [[ -z "$UI_ANSWER" ]]; then
+        UI_ANSWER="Skip"
+    fi
+    printf '\r\033[2K%s   %s\n' "$prompt" "$UI_ANSWER"
+}
+FM_PM_DISABLED
+
 ui_save_answers() {
     mkdir -p "$(dirname "$FM_UI_ANSWERS")"
     {
         printf 'FM_ANSWER_DOCK=%q\n' "$FM_ANSWER_DOCK"
         printf 'FM_ANSWER_PASSWORD_MANAGER=%q\n' "$FM_ANSWER_PASSWORD_MANAGER"
         printf 'FM_ANSWER_DEV=%q\n' "$FM_ANSWER_DEV"
+        # Disabled with the question below — nothing reads it while the
+        # project-management layer is commented out.
+        # printf 'FM_ANSWER_PM=%q\n' "${FM_ANSWER_PM:-Skip}"
     } > "$FM_UI_ANSWERS"
 }
 
@@ -348,6 +474,16 @@ ui_collect_answers() {
     else
         FM_ANSWER_DEV="no"
     fi
+
+    # Disabled with the multi-select primitive above: Opera has no PWA
+    # subsystem, so the answer had nothing to drive in module 05. Re-enable
+    # by removing these three lines and the two FM_PM_DISABLED guards.
+    #
+    # FM_ANSWER_PM="Skip"
+    # ui_choose_multi \
+    #     "Which project management tool do you use? (you can select multiple)" \
+    #     "Notion|Linear|Skip"
+    # FM_ANSWER_PM="$UI_ANSWER"
 
     ui_save_answers
     printf '\n'
