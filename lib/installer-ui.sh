@@ -96,32 +96,20 @@ ui_step() {
     ui_draw
 }
 
+# Runs a command with its output logged to $FM_UI_LOG, returning its exit
+# status. No error block on screen: install.sh's ERR trap reports an
+# unconditional failure as one line, and callers handle the rest.
 ui_exec() {
     local rc=0
     {
         printf '\n$ %s\n' "$*"
         "$@"
     } >> "$FM_UI_LOG" 2>&1 || rc=$?
-
-    if (( rc != 0 )); then
-        ui_clear
-        printf '%s✖ Command failed (exit %d):%s %s\n' \
-            "$c_err" "$rc" "$c_reset" "$*" >&2
-        printf '  Last lines from %s:\n' "$FM_UI_LOG" >&2
-        tail -n 10 "$FM_UI_LOG" 2>/dev/null | sed 's/^/    /' >&2
-        return "$rc"
-    fi
+    return "$rc"
 }
 
-# Log-only variant of ui_exec for optional work: same install.log entry, but
-# no error block on screen. The caller decides what to tell the user.
 ui_exec_quiet() {
-    local rc=0
-    {
-        printf '\n$ %s\n' "$*"
-        "$@"
-    } >> "$FM_UI_LOG" 2>&1 || rc=$?
-    return "$rc"
+    ui_exec "$@"
 }
 
 ui_finish() {

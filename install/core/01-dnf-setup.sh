@@ -2,10 +2,6 @@
 
 STEP_LABEL="Preparing system packages"
 
-# Set to 1 whenever the full system upgrade is skipped, so `fm upgrade` can
-# tell the user what it did not do. Reset every run.
-FM_SYSTEM_UPGRADE_SKIPPED=0
-
 ui_step
 if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf 2>/dev/null; then
   ui_exec sudo tee -a /etc/dnf/dnf.conf <<'EOF'
@@ -33,9 +29,7 @@ fi
 # boot.sh is unaffected: a first install has no session, so the upgrade runs.
 ui_step
 if [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]]; then
-  FM_SYSTEM_UPGRADE_SKIPPED=1
-  warn "Graphical session detected — skipping full system upgrade"
-  warn "Run 'sudo dnf upgrade --refresh' from a TTY, then reboot"
+  warn "Graphical session detected — system upgrade skipped; run 'sudo dnf upgrade --refresh' from a TTY, then reboot"
 else
   ui_exec sudo dnf upgrade -y --refresh
 fi

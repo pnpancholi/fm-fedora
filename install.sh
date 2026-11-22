@@ -6,14 +6,14 @@ export FM_FEDORA_PATH
 
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
+trap fm_fail ERR
+
 print_banner
 
 # sudo is needed by every module. boot.sh and `fm upgrade` already keep it
 # alive; a direct install.sh run starts its own keepalive here.
 if [[ -z "${FM_SUDO_KEEPALIVE_PID:-}" ]]; then
-    if ! sudo -n true 2>/dev/null; then
-        sudo -v || { error "sudo authentication failed"; exit 1; }
-    fi
+    sudo -n true 2>/dev/null || sudo -v
     ( while true; do sudo -v; sleep 60; done ) &
     FM_SUDO_KEEPALIVE_PID=$!
     export FM_SUDO_KEEPALIVE_PID
@@ -79,11 +79,7 @@ done
 ui_finish
 echo
 if [[ "${FM_UPGRADE:-0}" == "1" ]]; then
-    success "fm-fedora updated."
+    success "fm-fedora upgraded."
 else
     success "fm-fedora installed."
-fi
-info "Log: $FM_UI_LOG"
-if (( FM_UI_WARN_COUNT > 0 )); then
-    warn "Completed with $FM_UI_WARN_COUNT warning(s)."
 fi
