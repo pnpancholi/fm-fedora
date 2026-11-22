@@ -72,14 +72,28 @@ if systemctl --user show-environment >/dev/null 2>&1; then
 else
     warn "No systemd user manager in this environment — enable vicinae.service after login"
 fi
-
 # 6. Ghostty. Optional: the COPR does not publish builds for every Fedora
 #    release, so a failure here is logged and skipped instead of aborting the
 #    desktop layer with a stack of dnf errors.
+#
+#    Any existing Ghostty build is removed first. Terra ships Ghostty as a split
+#    set (ghostty + ghostty-bash-completion/-shell-integration/-terminfo/… +
+#    libghostty-vt) and the scottames 1.4.0 single-package build owns those same
+#    files, so upgrading over it fails the RPM transaction on file conflicts.
+#    Keeping Terra out of the install transaction stops its set coming back.
 ui_step
 GHOSTTY_OK=0
-if enable_copr_try "scottames/ghostty" && ui_exec_quiet sudo dnf install -y "$GHOSTTY_PKG"; then
-    GHOSTTY_OK=1
+if enable_copr_try "scottames/ghostty"; then
+    mapfile -t ghostty_installed_pkgs < <(rpm -qa --qf '%{NAME}\n' | grep -E '^(lib)?ghostty' | sort -u)
+    if (( ${#ghostty_installed_pkgs[@]} > 0 )); then
+        info "Removing existing Ghostty packages: ${ghostty_installed_pkgs[*]}"
+        ui_exec_quiet sudo dnf remove -y "${ghostty_installed_pkgs[@]}"
+    fi
+    if ui_exec_quiet sudo dnf install -y --disablerepo='terra*' "$GHOSTTY_PKG"; then
+        GHOSTTY_OK=1
+    else
+        warn "Ghostty install failed — skipping (Mod+Return will have no terminal)"
+    fi
 else
     warn "Ghostty unavailable on this Fedora release — skipping (Mod+Return will have no terminal)"
 fi
@@ -87,9 +101,9 @@ fi
 # 6a. GNOME Settings. Noctalia owns the bar and control centre, but the Wi-Fi,
 #     Bluetooth and power rows in bin/fm-settings shell out to this binary; no
 #     other active module installs it.
+
 ui_step
 ui_exec sudo dnf install -y "$CONTROL_CENTER_PKG"
-
 # 7. Ghostty config. Colours are inline (Monochrome palette), so no theme file
 #    lookup can resolve to the wrong thing.
 ui_step
