@@ -9,8 +9,8 @@ source "$FM_FEDORA_PATH/lib/helpers.sh"
 info "Installing gtklock lock screen..."
 
 CONFIG_DIR="$FM_FEDORA_PATH/config/gtklock"
-LOCK_WALLPAPER_SRC="$FM_FEDORA_PATH/assets/nordic-wp-lock.jpg"
-LOCK_WALLPAPER_DEST="$HOME/Pictures/wallpapers/nordic-wp-lock.jpg"
+LOCK_WALLPAPER_SRC="$FM_FEDORA_PATH/assets/wp.png"
+LOCK_WALLPAPER_DEST="$HOME/Pictures/wallpapers/wp.png"
 LOCK_USER="$(id -un)"
 
 # 1. Package (official Fedora repo)

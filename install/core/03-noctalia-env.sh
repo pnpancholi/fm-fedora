@@ -11,8 +11,8 @@ STEP_LABEL="Installing Noctalia shell"
 # ── Hardcoded values (edit here, not inline) ──
 NOCTALIA_PKG="noctalia"
 CONFIG_DIR="$FM_FEDORA_PATH/config/noctalia"
-WALLPAPER_SRC="$FM_FEDORA_PATH/assets/dw.jpg"
-WALLPAPER_DEST="$HOME/Pictures/wallpapers/dw.jpg"
+WALLPAPER_SRC="$FM_FEDORA_PATH/assets/wp.png"
+WALLPAPER_DEST="$HOME/Pictures/wallpapers/wp.png"
 # Vendored copy of the community "Monochrome" palette, pinned so the shell
 # never has to fetch it. Format 2 JSON, both dark and light variants.
 PALETTE_SRC="$CONFIG_DIR/palettes/Monochrome.json"
@@ -30,15 +30,16 @@ ui_step
 ui_exec sudo dnf install -y "$NOCTALIA_PKG"
 
 # 2. Wallpaper. Wired into config.toml as wallpaper.default.path.
+#    Always copy so re-runs and `fm upgrade` pick up a changed source file.
 ui_step
 mkdir -p "$HOME/Pictures/wallpapers"
-if [[ ! -f "$WALLPAPER_DEST" ]]; then
-    if [[ -f "$WALLPAPER_SRC" ]]; then
+if [[ -f "$WALLPAPER_SRC" ]]; then
+    if ! cmp -s "$WALLPAPER_SRC" "$WALLPAPER_DEST" 2>/dev/null; then
         cp "$WALLPAPER_SRC" "$WALLPAPER_DEST"
         info "Installed wallpaper: $WALLPAPER_DEST"
-    else
-        warn "Wallpaper missing: $WALLPAPER_SRC"
     fi
+else
+    warn "Wallpaper missing: $WALLPAPER_SRC"
 fi
 
 # 3. Palette. Must exist before the shell loads config.toml, which selects it
