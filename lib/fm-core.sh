@@ -16,7 +16,6 @@ EOF
 }
 
 fm_upgrade() {
-    info "Upgrading fm-fedora..."
     if [[ ! -d "$FM_FEDORA_PATH/.git" ]]; then
         error "Not a git repo: $FM_FEDORA_PATH"
         exit 1
@@ -28,10 +27,12 @@ fm_upgrade() {
         exit 1
     fi
     ( while true; do sudo -v; sleep 60; done ) &
-    sudo_keepalive_pid=$!
-    trap 'kill "${sudo_keepalive_pid:-}" 2>/dev/null' EXIT
+    FM_SUDO_KEEPALIVE_PID=$!
+    export FM_SUDO_KEEPALIVE_PID
+    trap 'kill "${FM_SUDO_KEEPALIVE_PID:-}" 2>/dev/null' EXIT
 
     git -C "$FM_FEDORA_PATH" pull --quiet
+    FM_UPGRADE=1
     source "$FM_FEDORA_PATH/install.sh"
 
     # Module 01 refuses to upgrade a live session (see install/core/01-dnf-setup.sh).
@@ -40,8 +41,6 @@ fm_upgrade() {
         warn "fm-fedora updated; system packages were left alone."
         warn "For system updates: log out to a TTY, run 'sudo dnf upgrade --refresh', reboot."
     fi
-
-    success "Upgrade complete."
 }
 
 fm_inspect() {

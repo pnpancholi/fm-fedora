@@ -7,7 +7,7 @@ set -euo pipefail
 # REPO: Fedora default + scottames COPRs
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
-info "Installing desktop layer (Vicinae, Ghostty)..."
+STEP_LABEL="Installing desktop apps"
 
 # ── Hardcoded values (edit here, not inline) ──
 VICINAE_PKG="vicinae"
@@ -33,11 +33,13 @@ DROPIN_DIR="$HOME/.config/systemd/user/vicinae.service.d"
 DROPIN="$DROPIN_DIR/memory.conf"
 
 # 1. COPR + package
+ui_step
 enable_copr "scottames/vicinae"
-sudo dnf install -y "$VICINAE_PKG"
+ui_exec sudo dnf install -y "$VICINAE_PKG"
 
 # 2. Theme. Vicinae drops files into the user theme dir at startup and hot
 #    reloads on change; the id is the filename without .toml.
+ui_step
 if [[ ! -f "$THEME_SRC" ]]; then
     error "Theme missing in repo: $THEME_SRC"
     return 1
@@ -46,9 +48,11 @@ write_config_ensure "$THEME_DEST" "$(cat "$THEME_SRC")"
 
 # 3. Settings. "theme.*.name = monochrome" is what actually selects the theme;
 #    `vicinae theme set` writes the same key through the running server.
+ui_step
 write_config_ensure "$SETTINGS_DEST" "$(cat "$CONFIG_DIR/settings.json")"
 
 # 4. Memory guard rail
+ui_step
 write_config_ensure "$DROPIN" "[Service]
 MemoryAccounting=yes
 MemoryHigh=400M
@@ -58,28 +62,32 @@ RestartSec=2"
 
 # 5. One launch path only: the user service. No autostart entry, so a second
 #    daemon never ends up running beside it.
+ui_step
 if systemctl --user show-environment >/dev/null 2>&1; then
-    systemctl --user daemon-reload
-    systemctl --user enable vicinae.service
+    ui_exec systemctl --user daemon-reload
+    ui_exec systemctl --user enable vicinae.service
     # Starting needs a live user manager + session; enable alone is enough at
     # install time, the unit comes up on next login.
-    systemctl --user restart vicinae.service 2>/dev/null || true
+    systemctl --user restart vicinae.service >/dev/null 2>&1 || true
 else
     warn "No systemd user manager in this environment — enable vicinae.service after login"
 fi
 
 # 6. Ghostty. Mod+Return and $TERMINAL (set in config/umbriel/config.toml) point
 #    at it, so it is the session's only terminal.
+ui_step
 enable_copr "scottames/ghostty"
-sudo dnf install -y "$GHOSTTY_PKG"
+ui_exec sudo dnf install -y "$GHOSTTY_PKG"
 
 # 6a. GNOME Settings. Noctalia owns the bar and control centre, but the Wi-Fi,
 #     Bluetooth and power rows in bin/fm-settings shell out to this binary; no
 #     other active module installs it.
-sudo dnf install -y "$CONTROL_CENTER_PKG"
+ui_step
+ui_exec sudo dnf install -y "$CONTROL_CENTER_PKG"
 
 # 7. Ghostty config. Colours are inline (Monochrome palette), so no theme file
 #    lookup can resolve to the wrong thing.
+ui_step
 if [[ ! -f "$GHOSTTY_CONFIG_SRC" ]]; then
     error "Ghostty config missing in repo: $GHOSTTY_CONFIG_SRC"
     return 1
@@ -88,8 +96,6 @@ write_config_ensure "$GHOSTTY_CONFIG_DEST" "$(cat "$GHOSTTY_CONFIG_SRC")"
 
 # ── Verification ──
 verify_desktop_env_install() {
-    info "Verifying desktop layer..."
-
     local failed=0
 
     for pkg in "$VICINAE_PKG" "$GHOSTTY_PKG" "$CONTROL_CENTER_PKG"; do
@@ -120,14 +126,11 @@ verify_desktop_env_install() {
         fi
     fi
 
-    if [[ $failed -eq 0 ]]; then
-        success "Desktop layer verified."
-    else
-        error "Verification failed. Check warnings above."
+    if [[ $failed -ne 0 ]]; then
+        error "Desktop layer verification failed. Check warnings above."
         return 1
     fi
 }
 
+ui_step
 verify_desktop_env_install
-
-success "Desktop layer installed: Vicinae (Mod+Space), Ghostty (Mod+Return, \$TERMINAL)."

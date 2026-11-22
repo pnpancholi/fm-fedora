@@ -6,7 +6,7 @@ set -euo pipefail
 # REPO: terra (repos.fyralabs.com; enabled for this install, disabled after)
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
-info "Installing Umbriel core packages..."
+STEP_LABEL="Installing Umbriel compositor"
 
 # ── Hardcoded values (edit here, not inline) ──
 # Umbriel has no upstream releases or tags yet: every Fedora build is a git
@@ -19,25 +19,26 @@ CONFIG_DIR="$FM_FEDORA_PATH/config/umbriel"
 
 # Terra is needed only for this install. Disable it on every exit path —
 # success, handled failure, or an unexpected abort — so routine `dnf upgrade`
-# keeps the installed Umbriel build pinned. Self-clearing: the first call
-# removes the trap so later exits do not repeat the work.
+# keeps the installed Umbriel build pinned. install.sh's EXIT trap calls this,
+# and it is idempotent because it can also be called explicitly.
+FM_TERRA_DISABLED=0
 disable_terra() {
-    trap - EXIT
+    if [[ "$FM_TERRA_DISABLED" == "1" ]]; then
+        return 0
+    fi
+    FM_TERRA_DISABLED=1
     for repo_file in /etc/yum.repos.d/terra*.repo; do
         [[ -f "$repo_file" ]] || continue
         sudo sed -i -E 's/^enabled[[:space:]]*=[[:space:]]*1.*/enabled=0/' "$repo_file"
     done
-    info "Terra repo disabled; Umbriel stays on the installed build"
 }
 
-trap disable_terra EXIT
-
 # 1. Terra repository — Umbriel has no Fedora package.
+ui_step
 if ! rpm -q terra-release >/dev/null 2>&1; then
-    info "Adding Terra repository (bootstrap of the repo RPM only)..."
     # --nogpgcheck here applies ONLY to fetching terra-release itself.
     # Package installs below are GPG-checked and gated in step 1a.
-    sudo dnf install -y --nogpgcheck \
+    ui_exec sudo dnf install -y --nogpgcheck \
         --repofrompath "${TERRA_REPO_ID},${TERRA_URL}" terra-release
 fi
 
@@ -55,27 +56,34 @@ fi
 #    layers (Waybar, SwayNC, Ghostty, Vicinae, gtklock, …) are installed by
 #    their own parked modules.
 install_umbriel() {
-    sudo dnf install -y --enablerepo='terra*' "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG"
+    ui_exec sudo dnf install -y --enablerepo='terra*' \
+        "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG" || return 1
 
     # xdg-desktop-portal is the front end Umbriel's backend plugs into; the GTK
     # backend covers the portals Umbriel does not implement itself.
-    sudo dnf install -y xdg-desktop-portal xdg-desktop-portal-gtk
+    ui_exec sudo dnf install -y xdg-desktop-portal xdg-desktop-portal-gtk || return 1
 }
 
+ui_step
 if ! install_umbriel; then
     disable_terra
-    error "Umbriel installation failed — see the dnf output above"
+    error "Umbriel installation failed — see the install log"
     return 1
 fi
 disable_terra
 
-command -v umbriel >/dev/null 2>&1 || { disable_terra; error "umbriel binary not found after install"; return 1; }
-success "Umbriel $(rpm -q --qf '%{VERSION}' "$UMBRIEL_PKG") installed"
+command -v umbriel >/dev/null 2>&1 || {
+    disable_terra
+    error "umbriel binary not found after install"
+    return 1
+}
 
 # 3. Config. Umbriel never creates a user config on its own.
+ui_step
 write_config_ensure "$HOME/.config/umbriel/config.toml" "$(cat "$CONFIG_DIR/config.toml")"
 
 # 4. environment.d for systemd/user services (all GPUs)
+ui_step
 mkdir -p "$HOME/.config/environment.d"
 write_config_if_missing "$HOME/.config/environment.d/umbriel.conf" "QT_QPA_PLATFORM=wayland
 QT_QPA_PLATFORMTHEME=qt5ct
@@ -86,12 +94,12 @@ ELECTRON_OZONE_PLATFORM_HINT=auto
 
 # 5. NVIDIA-specific env vars (only if NVIDIA GPU detected).
 #    Guarded so re-running install.sh doesn't append the block twice.
+ui_step
 if lspci | grep -qi nvidia; then
     if grep -q '^# NVIDIA (auto-detected)$' "$HOME/.config/environment.d/umbriel.conf" 2>/dev/null; then
         info "NVIDIA env vars already present"
     else
-        info "NVIDIA GPU detected, adding NVIDIA env vars..."
-        cat >> "$HOME/.config/environment.d/umbriel.conf" <<'EOF'
+        ui_exec sudo tee -a "$HOME/.config/environment.d/umbriel.conf" <<'EOF'
 
 # NVIDIA (auto-detected)
 LIBVA_DRIVER_NAME=nvidia
@@ -105,8 +113,6 @@ fi
 
 # ── Verification ──
 verify_umbriel_install() {
-    info "Verifying Umbriel installation..."
-
     local failed=0
 
     for pkg in "$UMBRIEL_PKG" "$UMBRIEL_PORTAL_PKG" \
@@ -145,15 +151,11 @@ verify_umbriel_install() {
         fi
     fi
 
-    if [[ $failed -eq 0 ]]; then
-        success "Umbriel core installation verified."
-        info "Next: log out, then pick 'Umbriel' in GDM"
-    else
-        error "Verification failed. Check warnings above."
+    if [[ $failed -ne 0 ]]; then
+        error "Umbriel verification failed. Check warnings above."
         return 1
     fi
 }
 
+ui_step
 verify_umbriel_install
-
-success "Umbriel installed successfully."

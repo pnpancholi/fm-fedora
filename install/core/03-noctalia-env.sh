@@ -6,7 +6,7 @@ set -euo pipefail
 #       not need it.
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
-info "Installing Noctalia shell (Umbriel's bar, wallpaper and panels)..."
+STEP_LABEL="Installing Noctalia shell"
 
 # ── Hardcoded values (edit here, not inline) ──
 NOCTALIA_PKG="noctalia"
@@ -26,13 +26,11 @@ if [[ "$FEDORA_RELEASE" -lt 44 ]]; then
 fi
 
 # 1. Package
-if ! sudo dnf install -y "$NOCTALIA_PKG"; then
-    error "Noctalia install failed — check 'dnf info noctalia' for the repo (Fedora 45+ ships it)"
-    error "Fallback: sudo dnf copr enable lionheartp/Hyprland && sudo dnf install noctalia-git"
-    return 1
-fi
+ui_step
+ui_exec sudo dnf install -y "$NOCTALIA_PKG"
 
 # 2. Wallpaper. Wired into config.toml as wallpaper.default.path.
+ui_step
 mkdir -p "$HOME/Pictures/wallpapers"
 if [[ ! -f "$WALLPAPER_DEST" ]]; then
     if [[ -f "$WALLPAPER_SRC" ]]; then
@@ -45,6 +43,7 @@ fi
 
 # 3. Palette. Must exist before the shell loads config.toml, which selects it
 #    with [theme] source = "custom".
+ui_step
 if [[ ! -f "$PALETTE_SRC" ]]; then
     error "Palette missing in repo: $PALETTE_SRC"
     return 1
@@ -53,12 +52,11 @@ write_config_ensure "$PALETTE_DEST" "$(cat "$PALETTE_SRC")"
 
 # 4. Config. Declarative layer only — Noctalia's GUI-managed
 #    ~/.local/state/noctalia/settings.toml still wins over this file.
+ui_step
 write_config_ensure "$HOME/.config/noctalia/config.toml" "$(cat "$CONFIG_DIR/config.toml")"
 
 # ── Verification ──
 verify_noctalia_install() {
-    info "Verifying Noctalia installation..."
-
     local failed=0
 
     if ! rpm -q "$NOCTALIA_PKG" >/dev/null 2>&1; then
@@ -94,14 +92,11 @@ verify_noctalia_install() {
         fi
     fi
 
-    if [[ $failed -eq 0 ]]; then
-        success "Noctalia installation verified."
-    else
-        error "Verification failed. Check warnings above."
+    if [[ $failed -ne 0 ]]; then
+        error "Noctalia verification failed. Check warnings above."
         return 1
     fi
 }
 
+ui_step
 verify_noctalia_install
-
-success "Noctalia installed. Umbriel starts it via autostart; log out to pick it up."

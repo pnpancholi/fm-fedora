@@ -8,7 +8,48 @@ source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 print_banner
 
+# sudo is needed by every module. boot.sh and `fm upgrade` already keep it
+# alive; a direct install.sh run starts its own keepalive here.
+if [[ -z "${FM_SUDO_KEEPALIVE_PID:-}" ]]; then
+    if ! sudo -n true 2>/dev/null; then
+        sudo -v || { error "sudo authentication failed"; exit 1; }
+    fi
+    ( while true; do sudo -v; sleep 60; done ) &
+    FM_SUDO_KEEPALIVE_PID=$!
+    export FM_SUDO_KEEPALIVE_PID
+fi
+
+# One exit path: disable Terra if module 02 enabled it, then stop the sudo
+# keepalive. Modules do not install their own EXIT traps.
+fm_cleanup() {
+    if declare -F disable_terra >/dev/null 2>&1; then
+        disable_terra
+    fi
+    kill "${FM_SUDO_KEEPALIVE_PID:-}" 2>/dev/null || true
+}
+trap fm_cleanup EXIT
+
+# Questions are saved to ~/.config/fm-fedora/install.conf. They are asked on
+# every run for now, including `fm upgrade`.
+ui_collect_answers
+
+# Core modules
+# Parked while the new shell layers land; re-enable each module as its Umbriel
+# replacement is ready.
+#    install/core/05-swaync.sh
+#    install/core/07-gtklock.sh
+FM_MODULES=(
+    "$FM_FEDORA_PATH/install/core/01-dnf-setup.sh"
+    "$FM_FEDORA_PATH/install/core/02-umbriel.sh"
+    "$FM_FEDORA_PATH/install/core/03-noctalia-env.sh"
+    "$FM_FEDORA_PATH/install/core/04-desktop-env.sh"
+)
+
+ui_init "$(ui_count_steps "${FM_MODULES[@]}" "$FM_FEDORA_PATH/install.sh")"
+
 # Install fm CLI and helpers to PATH
+STEP_LABEL="Installing fm CLI"
+ui_step
 mkdir -p "$HOME/.local/bin"
 
 # Prune symlinks left behind by tools that no longer exist in bin/
@@ -23,27 +64,26 @@ for f in "$FM_FEDORA_PATH"/bin/*; do
     ln -sf "$f" "$HOME/.local/bin/$(basename "$f")"
 done
 
-# Ensure ~/.local/bin in PATH
+ui_step
 for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
     if [[ -f "$rc" ]] && ! grep -q '~/.local/bin' "$rc"; then
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$rc"
     fi
 done
 
-info "fm CLI installed. Restart shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\""
-
 # Core modules
-# Parked while the new shell layers land; re-enable each module as its Umbriel
-# replacement is ready.
-#    install/core/05-swaync.sh
-#    install/core/07-gtklock.sh
-for script in \
-    "$FM_FEDORA_PATH"/install/core/01-dnf-setup.sh \
-    "$FM_FEDORA_PATH"/install/core/02-umbriel.sh \
-    "$FM_FEDORA_PATH"/install/core/03-noctalia-env.sh \
-    "$FM_FEDORA_PATH"/install/core/04-desktop-env.sh; do
-    info "-- $(basename "$script")"
+for script in "${FM_MODULES[@]}"; do
     source "$script"
 done
 
-success "Core setup complete."
+ui_finish
+echo
+if [[ "${FM_UPGRADE:-0}" == "1" ]]; then
+    success "fm-fedora updated."
+else
+    success "fm-fedora installed."
+fi
+info "Log: $FM_UI_LOG"
+if (( FM_UI_WARN_COUNT > 0 )); then
+    warn "Completed with $FM_UI_WARN_COUNT warning(s)."
+fi
