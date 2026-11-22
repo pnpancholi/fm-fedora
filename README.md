@@ -36,6 +36,8 @@ bash ~/.local/share/fm-fedora/boot.sh
 - ✅ Tunes DNF for faster parallel downloads (`max_parallel_downloads=10`, `fastestmirror`)
 - ✅ Enables RPM Fusion (free + nonfree repositories)
 - ✅ Fully upgrades system packages
+- ✅ Installs Obsidian from the kmf COPR (no official Fedora RPM exists)
+- ✅ Installs Blip from the vendor's official installer — File sharing category (no RPM, no Flatpak, no Snap)
 - 🚧 Extensible — add your own modules in `install/core/`
 
 ## Architecture

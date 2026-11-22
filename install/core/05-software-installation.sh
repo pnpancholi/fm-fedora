@@ -6,8 +6,10 @@ set -euo pipefail
 # Answers are saved to ~/.config/fm-fedora/install.conf and sourced before
 # every module, so they are always set by the time we get here.
 #
-# PKG: google-chrome-stable (Google RPM repo), opera-stable (Opera RPM repo)
-# REPO: Fedora default + vendor repos written by this module (left enabled)
+# PKG: google-chrome-stable (Google RPM repo), opera-stable (Opera RPM repo),
+#      obsidian (COPR: kmf/Obsidian), blip (official tarball installer — no RPM)
+# REPO: Fedora default + vendor repos written by this module (left enabled),
+#       plus the kmf/Obsidian COPR (left enabled — see ADR-007)
 source "$FM_FEDORA_PATH/lib/helpers.sh"
 
 STEP_LABEL="Installing user software"
@@ -36,6 +38,29 @@ OPERA_GPGKEY="https://rpm.opera.com/rpmrepo.key"
 OPERA_KEY_PKG="gpg-pubkey-b693a745"
 OPERA_PKG="opera-stable"
 OPERA_BIN="opera"
+
+# Obsidian: no official Fedora RPM exists. Terra shipped one for a few hours
+# on 2026-08-09 and removed it the same day across every branch over
+# redistribution terms, so the only RPM route left is the kmf COPR, which
+# repackages the official GitHub tarball on Fedora's own build infrastructure
+# (ADR-007). It ships the .desktop file itself, including the
+# x-scheme-handler/obsidian registration, so there is nothing for us to write.
+OBSIDIAN_COPR="kmf/Obsidian"
+OBSIDIAN_PKG="obsidian"
+OBSIDIAN_BIN="obsidian"
+OBSIDIAN_DESKTOP="/usr/share/applications/obsidian.desktop"
+
+# Blip: no Fedora RPM exists and no COPR builds one, so the only route the
+# vendor supports on Fedora is its own installer script — the "Other" tab on
+# blip.net/download/linux (ADR-008). The script runs as the normal user
+# (it refuses root, so no sudo here), unpacks to ~/.local/opt/blip, symlinks
+# ~/.local/bin/blip and writes the .desktop itself. It is idempotent: a re-run
+# upgrades to the latest release and refuses to touch anything it does not own,
+# so `fm upgrade` keeps Blip current without a repo of ours.
+BLIP_INSTALL_URL="https://static.blip.net/linux/install.sh"
+BLIP_APP_DIR="$HOME/.local/opt/blip"
+BLIP_BIN_LINK="$HOME/.local/bin/blip"
+BLIP_DESKTOP="$HOME/.local/share/applications/net.blip.Blip.desktop"
 
 # Web apps — disabled. Opera has no PWA subsystem: no install prompt, no
 # chrome://apps, and `opera --app=URL` is silently ignored (Omarchy issue
@@ -235,7 +260,8 @@ fi
 #
 #   a. Browsers
 #   b. Web apps — disabled (Opera has no PWA subsystem; see note above)
-#   c. <next category — TBD>
+#   c. Notes (Obsidian)
+#   d. File sharing (Blip)
 # ==============================================================================
 
 # ── a. Browsers ──
@@ -323,7 +349,55 @@ fi
 #     done
 # fi
 
-# ── c. <next category — TBD> ──
+# ── c. Notes ──
+# Obsidian. enable_copr_try rather than enable_copr: the COPR publishes one
+# chroot per Fedora release and does not build for all of them, so a missing
+# chroot degrades to a recorded failure instead of an abort — the same
+# treatment Ghostty gets in module 04.
+#
+# The flag is what the verify pass keys off, so an unavailable COPR never
+# makes the module fail on checks it never attempted.
+ui_step
+FM_OBSIDIAN_ATTEMPTED=0
+if enable_copr_try "$OBSIDIAN_COPR"; then
+    FM_OBSIDIAN_ATTEMPTED=1
+    if ! ui_exec sudo dnf install -y "$OBSIDIAN_PKG"; then
+        # Recorded before the verify pass so a failed install still lands in
+        # the end-of-run summary, exactly like the browsers above.
+        fm_record_failure "Obsidian"
+    fi
+else
+    fm_record_failure "Obsidian"
+fi
+
+# ── d. File sharing ──
+# Blip, from the vendor's own installer (ADR-008): no Fedora RPM, no COPR,
+# and the store routes (Flatpak/Snap) were rejected in favour of the path
+# blip.net/download/linux documents for "other" distros.
+#
+# Piping curl to bash is deliberate and mitigated upstream: HTTPS, a SHA-256
+# check against latest.json before anything is extracted, and a hard refusal
+# to overwrite an install or .desktop entry it does not own. The script dies
+# if run as root, so it must NOT be wrapped in sudo.
+#
+# FM_BLIP_ATTEMPTED marks the category as run, so the verify pass reports a
+# failed install instead of passing silently on a category that never ran.
+ui_step
+FM_BLIP_ATTEMPTED=1
+# bash -o pipefail: without it a failed curl leaves an empty script and bash
+# exits 0, so a dead network would read as a successful install.
+if ! ui_exec bash -o pipefail -c "curl -fsSL '$BLIP_INSTALL_URL' | bash"; then
+    # Recorded before the verify pass so a failed install lands in the
+    # end-of-run summary, exactly like the browsers and Obsidian above.
+    fm_record_failure "Blip"
+fi
+
+# Best effort: the installer writes ~/.local/share/applications itself but
+# does not refresh the desktop database, so the launcher entry can lag until
+# the next session. The file is already on disk either way.
+if command -v update-desktop-database >/dev/null 2>&1; then
+    ui_exec update-desktop-database "$HOME/.local/share/applications" || true
+fi
 
 # ── Verification ──
 # Reports only what a block above actually attempted, so an unimplemented
@@ -389,6 +463,51 @@ verify_software_installation() {
     #         fi
     #     done
     # fi
+
+    # Obsidian — only checked when the Notes category above actually reached
+    # the install, so a COPR that never enabled is reported once, by
+    # fm_record_failure, and not again here.
+    if (( ${FM_OBSIDIAN_ATTEMPTED:-0} )); then
+        if ! rpm -q "$OBSIDIAN_PKG" >/dev/null 2>&1; then
+            warn "Package missing: $OBSIDIAN_PKG"
+            failed=1
+        fi
+        if ! command -v "$OBSIDIAN_BIN" >/dev/null 2>&1; then
+            warn "Binary missing: $OBSIDIAN_BIN"
+            failed=1
+        fi
+        # The RPM ships this itself — it is also what registers the
+        # obsidian:// URI handler for the launcher.
+        if [[ ! -f "$OBSIDIAN_DESKTOP" ]]; then
+            warn "Desktop entry missing: $OBSIDIAN_DESKTOP"
+            failed=1
+        fi
+    fi
+
+    # Blip — checked whenever the File sharing category above ran, which is
+    # every install. Path checks rather than `command -v blip`: ~/.local/bin
+    # only reaches PATH through the rc files install.sh appends to, so it may
+    # not be exported in this shell yet.
+    if (( ${FM_BLIP_ATTEMPTED:-0} )); then
+        if [[ ! -x "$BLIP_APP_DIR/bin/blip" ]]; then
+            warn "Binary missing: $BLIP_APP_DIR/bin/blip"
+            failed=1
+        fi
+        # The PATH entry install.sh's rc additions rely on.
+        if [[ ! -L "$BLIP_BIN_LINK" ]]; then
+            warn "Launcher link missing: $BLIP_BIN_LINK"
+            failed=1
+        fi
+        # Written by the installer; absent means the app dir is not its work.
+        if [[ ! -f "$BLIP_APP_DIR/.blip-tarball-install" ]]; then
+            warn "Install marker missing: $BLIP_APP_DIR/.blip-tarball-install"
+            failed=1
+        fi
+        if [[ ! -f "$BLIP_DESKTOP" ]]; then
+            warn "Desktop entry missing: $BLIP_DESKTOP"
+            failed=1
+        fi
+    fi
 
     # TODO: per-block rpm -q / command -v checks for the answers above as
     # each block lands.

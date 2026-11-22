@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-23*
 
 Each record follows: **Context → Decision → Consequences**
 
@@ -142,3 +142,52 @@ Options rejected:
 - 📦 Modules updated: `02-mango.sh` → `02-umbriel.sh`, `config/mango/` → `config/umbriel/`
 - 🔧 `bin/fm-power` logout now calls `umbriel msg session-quit skip-confirmation`
 - 🗑️ `xdg-desktop-portal-wlr` is no longer installed; Umbriel's own portal backend handles ScreenCast/Screenshot
+
+---
+## ADR-007: Obsidian comes from the kmf COPR, not Terra, Flatpak or an AppImage
+
+**Date:** 2026-11-22
+
+**Context:** Obsidian ships no official Fedora RPM — the supported Linux formats are AppImage, Snap, Flatpak and DEB. The project wants Obsidian installed by the normal module path, updating through `dnf`, with a launcher entry and an `obsidian://` handler.
+
+Terra looked like the answer: PR #15067 added `obsidian` on 2026-08-09, building the official `obsidianmd/obsidian-releases` tarball unmodified, with an `update.rhai` bump script. It was **removed the same day** — #15149, backported to el10/f43/f44/f45 — over Obsidian's terms prohibiting redistribution. So there is no Terra RPM to install, and none to pin to.
+
+Options rejected:
+- **Flatpak (`md.obsidian.Obsidian`)** — the only channel marked "verified by the Obsidian team", but it adds a second package channel to a project that otherwise installs only RPMs, and it needs a filesystem override before a vault outside the XDG paths is visible.
+- **AppImage** — the official upstream build, but updates are a manual re-download, and it ships no `.desktop` or icon, so the launcher entry would have to be written and maintained by this project.
+
+**Decision:** Install `obsidian` from the **kmf/Obsidian COPR** via `enable_copr_try`, as category "c. Notes" in `install/core/05-software-installation.sh`, leaving the COPR enabled so updates arrive through a normal `dnf upgrade`.
+
+**Consequences:**
+- ✅ Fedora's own build infrastructure; the RPM is signed by Copr's key, so `gpgcheck` stays on with no `--nogpgcheck` anywhere
+- ✅ Updates are CI-driven — the repo auto-bumps on each upstream release (1.15.1 landed 2026-11-12) and follows Fedora branching, so the f45 chroot tracks the release
+- ✅ Same pattern the project already trusts: module 04 installs Vicinae and Ghostty from COPRs
+- ✅ The RPM ships `/usr/bin/obsidian`, a `.desktop` with `MimeType=x-scheme-handler/obsidian;` and a 512px icon — no config or desktop entry for us to write
+- ⚠️ Single maintainer. If the COPR goes stale the package stops updating but keeps working, and nothing in the installer would notice — `enable_copr_try` only reports a missing chroot, not a frozen one
+- ⚠️ The same redistribution claim that removed the Terra package could remove this one. Fallback if that happens: Flatpak, which Obsidian's own team verifies
+- ⚠️ `dnf copr` needs `dnf-plugins-core`; already required by module 04, so this adds no new dependency
+- 📦 `install/core/05-software-installation.sh` gains category "c. Notes" plus an Obsidian block in `verify_software_installation`, gated on `FM_OBSIDIAN_ATTEMPTED`
+
+---
+
+## ADR-008: Blip comes from the vendor's own installer, not Flatpak, Snap or an RPM
+
+**Date:** 2026-11-23
+
+**Context:** Blip (blip.net) has no Fedora RPM — nothing in Fedora, RPM Fusion, Terra or any COPR. The vendor's Linux page offers exactly four routes: Flathub (`net.blip.Blip`, verified by blip.net), Snap Store, an AUR package, a Nix flake, and an "Other" tab whose install command is `curl -fsSL https://static.blip.net/linux/install.sh | bash`.
+
+Options rejected:
+- **Flatpak** — the verified channel and what the project would pick if an RPM existed, but it is the first non-RPM package source in an otherwise RPM-only installer (ADR-007 rejected Flatpak for Obsidian on exactly this ground), and a Flatpaked Blip needs a filesystem override before a vault outside the XDG paths is visible.
+- **Snap** — needs `snapd` plus the classic `/snap` symlink on Fedora, a heavyweight addition for one app.
+- **Hand-rolled tarball logic in the module** — re-implements what the vendor's script already does (download, SHA-256 check, staging, rollback) and would have to be maintained against upstream layout changes.
+
+**Decision:** Install Blip as category "d. File sharing" in `install/core/05-software-installation.sh` by running the vendor's script directly, unprivileged, on every install and every `fm upgrade`.
+
+**Consequences:**
+- ✅ The official path for distros without a store package: unpacks to `~/.local/opt/blip`, symlinks `~/.local/bin/blip`, writes `net.blip.Blip.desktop` and icons itself — nothing for the installer to author
+- ✅ Idempotent and self-verifying: re-run upgrades to the latest release, a SHA-256 from `latest.json` is checked before extraction, and it refuses to overwrite an install or `.desktop` it does not own — so `fm upgrade` keeps Blip current with no repo of ours
+- ✅ No sudo, no new repo, no new package channel: the module stays RPM-only for everything else
+- ⚠️ `curl | bash` from a third-party origin: mitigated by HTTPS, the script's own checksum/staging/rollback logic, and its refusal to replace unmanaged installs — but trust rests on `static.blip.net` being intact
+- ⚠️ Updates arrive through `fm upgrade` (network required), not `dnf upgrade`; a stale Blip is invisible to any package query — `rpm -q` finds nothing, so the verify pass keys off the marker file and `.desktop` instead
+- ⚠️ Uninstall is the script's own `--uninstall` flag; `fm uninstall` is still unimplemented, so Blip is not on its removal list yet
+- 📦 `install/core/05-software-installation.sh` gains category "d. File sharing" plus a Blip block in `verify_software_installation`, gated on `FM_BLIP_ATTEMPTED`
