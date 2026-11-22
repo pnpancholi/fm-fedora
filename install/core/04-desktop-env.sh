@@ -73,11 +73,16 @@ else
     warn "No systemd user manager in this environment — enable vicinae.service after login"
 fi
 
-# 6. Ghostty. Mod+Return and $TERMINAL (set in config/umbriel/config.toml) point
-#    at it, so it is the session's only terminal.
+# 6. Ghostty. Optional: the COPR does not publish builds for every Fedora
+#    release, so a failure here is logged and skipped instead of aborting the
+#    desktop layer with a stack of dnf errors.
 ui_step
-enable_copr "scottames/ghostty"
-ui_exec sudo dnf install -y "$GHOSTTY_PKG"
+GHOSTTY_OK=0
+if enable_copr_try "scottames/ghostty" && ui_exec_quiet sudo dnf install -y "$GHOSTTY_PKG"; then
+    GHOSTTY_OK=1
+else
+    warn "Ghostty unavailable on this Fedora release — skipping (Mod+Return will have no terminal)"
+fi
 
 # 6a. GNOME Settings. Noctalia owns the bar and control centre, but the Wi-Fi,
 #     Bluetooth and power rows in bin/fm-settings shell out to this binary; no
@@ -88,36 +93,55 @@ ui_exec sudo dnf install -y "$CONTROL_CENTER_PKG"
 # 7. Ghostty config. Colours are inline (Monochrome palette), so no theme file
 #    lookup can resolve to the wrong thing.
 ui_step
-if [[ ! -f "$GHOSTTY_CONFIG_SRC" ]]; then
-    error "Ghostty config missing in repo: $GHOSTTY_CONFIG_SRC"
-    return 1
+if (( GHOSTTY_OK )); then
+    if [[ ! -f "$GHOSTTY_CONFIG_SRC" ]]; then
+        error "Ghostty config missing in repo: $GHOSTTY_CONFIG_SRC"
+        return 1
+    fi
+    write_config_ensure "$GHOSTTY_CONFIG_DEST" "$(cat "$GHOSTTY_CONFIG_SRC")"
 fi
-write_config_ensure "$GHOSTTY_CONFIG_DEST" "$(cat "$GHOSTTY_CONFIG_SRC")"
 
 # ── Verification ──
 verify_desktop_env_install() {
     local failed=0
 
-    for pkg in "$VICINAE_PKG" "$GHOSTTY_PKG" "$CONTROL_CENTER_PKG"; do
+    for pkg in "$VICINAE_PKG" "$CONTROL_CENTER_PKG"; do
         if ! rpm -q "$pkg" >/dev/null 2>&1; then
             warn "Package missing: $pkg"
             failed=1
         fi
     done
 
-    for bin in vicinae ghostty gnome-control-center; do
+    for bin in vicinae gnome-control-center; do
         if ! command -v "$bin" >/dev/null 2>&1; then
             warn "$bin binary not found"
             failed=1
         fi
     done
 
-    for f in "$SETTINGS_DEST" "$THEME_DEST" "$DROPIN" "$GHOSTTY_CONFIG_DEST"; do
+    # Ghostty is optional: only verify it when its install actually ran.
+    if (( GHOSTTY_OK )); then
+        if ! rpm -q "$GHOSTTY_PKG" >/dev/null 2>&1; then
+            warn "Package missing: $GHOSTTY_PKG"
+            failed=1
+        fi
+        if ! command -v ghostty >/dev/null 2>&1; then
+            warn "ghostty binary not found"
+            failed=1
+        fi
+    fi
+
+    for f in "$SETTINGS_DEST" "$THEME_DEST" "$DROPIN"; do
         if [[ ! -f "$f" ]]; then
             warn "Missing: $f"
             failed=1
         fi
     done
+
+    if (( GHOSTTY_OK )) && [[ ! -f "$GHOSTTY_CONFIG_DEST" ]]; then
+        warn "Missing: $GHOSTTY_CONFIG_DEST"
+        failed=1
+    fi
 
     if systemctl --user show-environment >/dev/null 2>&1; then
         if ! systemctl --user is-enabled --quiet vicinae.service; then

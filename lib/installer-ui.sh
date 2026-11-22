@@ -113,6 +113,17 @@ ui_exec() {
     fi
 }
 
+# Log-only variant of ui_exec for optional work: same install.log entry, but
+# no error block on screen. The caller decides what to tell the user.
+ui_exec_quiet() {
+    local rc=0
+    {
+        printf '\n$ %s\n' "$*"
+        "$@"
+    } >> "$FM_UI_LOG" 2>&1 || rc=$?
+    return "$rc"
+}
+
 ui_finish() {
     FM_UI_CURRENT="$FM_UI_TOTAL"
     FM_UI_LABEL="Done"
@@ -134,49 +145,158 @@ ui_count_steps() {
     echo "$total"
 }
 
-ui_confirm() {
-    local prompt="$1" default="${2:-n}" hint reply=""
-    if [[ "$default" == "y" ]]; then
-        hint="[Y/n]"
+# ── Interactive selectors ──
+# Both draw in place: the question stays on one line and collapses to
+# `question   answer` once confirmed, so the transcript reads like a filled-in
+# form. Non-interactive runs print the default answer and move on.
+
+ui__truncate() {
+    local text="$1" max=$(( $(ui_cols) - 6 ))
+    if (( max < 10 )); then
+        max=10
+    fi
+    if (( ${#text} > max )); then
+        text="${text:0:max-1}…"
+    fi
+    printf '%s' "$text"
+}
+
+ui__confirm_line() {
+    local prompt="$1" sel="$2"
+    printf '\r\033[2K  %s   ' "$prompt"
+    if (( sel )); then
+        printf '%sNo%s   %s[Yes]%s' "$c_dim" "$c_reset" "$c_brand" "$c_reset"
     else
-        hint="[y/N]"
+        printf '%s[No]%s   %sYes%s' "$c_brand" "$c_reset" "$c_dim" "$c_reset"
+    fi
+}
+
+ui__choose_line() {
+    local text="$1" selected="$2"
+    text="$(ui__truncate "$text")"
+    if [[ "$selected" == "1" ]]; then
+        printf '   %s❯%s %s\n' "$c_brand" "$c_reset" "$text"
+    else
+        printf '     %s%s%s\n' "$c_dim" "$text" "$c_reset"
+    fi
+}
+
+ui_confirm() {
+    local prompt="$1" default="${2:-n}" hint="${3:-}"
+    local sel=0 answer key esc
+
+    if [[ "$default" == "y" || "$default" == "yes" ]]; then
+        sel=1
     fi
 
-    printf '  %s\n' "$prompt"
-    if [[ -t 0 ]]; then
-        read -r -p "  $hint " reply || reply=""
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        answer="No"
+        if (( sel )); then answer="Yes"; fi
+        printf '  %s   %s\n' "$prompt" "$answer"
+        if (( sel == 1 )); then return 0; else return 1; fi
     fi
-    reply="${reply:-$default}"
-    [[ "$reply" =~ ^[Yy] ]]
+
+    if [[ -n "$hint" ]]; then
+        printf '  %s%s%s\n' "$c_dim" "$(ui__truncate "$hint")" "$c_reset"
+    fi
+
+    while true; do
+        ui__confirm_line "$prompt" "$sel"
+        IFS= read -rsn1 key || key=""
+        case "$key" in
+            ''|$'\n'|$'\r') break ;;
+            [Yy]) sel=1; break ;;
+            [Nn]) sel=0; break ;;
+            [Hh]) sel=0 ;;
+            [Ll]) sel=1 ;;
+            ' '|$'\t') sel=$(( 1 - sel )) ;;
+            $'\x1b')
+                IFS= read -rsn2 -t 0.1 esc || esc=""
+                case "$esc" in
+                    '[D'|'[A'|'OD'|'OA') sel=0 ;;
+                    '[C'|'[B'|'OC'|'OB') sel=1 ;;
+                esac
+                ;;
+        esac
+    done
+
+    # Collapse the toggle into a plain `question   answer` line.
+    printf '\r\033[2K'
+    if [[ -n "$hint" ]]; then
+        printf '\033[1A'
+    fi
+    answer="No"
+    if (( sel )); then answer="Yes"; fi
+    printf '\r\033[2K  %s   %s\n' "$prompt" "$answer"
+    if (( sel == 1 )); then return 0; else return 1; fi
 }
 
 ui_choose() {
-    local prompt="$1" options="$2" default_index="${3:-1}" reply="" index=1 option
-    local IFS='|'
+    local prompt="$1" options="$2" default_index="${3:-1}"
+    local -a items=()
+    local IFS='|' opt
+    for opt in $options; do
+        items+=("$opt")
+    done
+
+    local count="${#items[@]}" i key esc selected
+    if (( default_index < 1 || default_index > count )); then
+        default_index=1
+    fi
+    local sel=$(( default_index - 1 ))
+
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        UI_ANSWER="${items[$sel]}"
+        printf '  %s   %s\n' "$prompt" "$UI_ANSWER"
+        return
+    fi
 
     printf '  %s\n' "$prompt"
-    for option in $options; do
-        printf '    %d) %s\n' "$index" "$option"
-        index=$(( index + 1 ))
+    for (( i=0; i<count; i++ )); do
+        selected=0
+        if (( i == sel )); then selected=1; fi
+        ui__choose_line "${items[$i]}" "$selected"
     done
 
-    if [[ -t 0 ]]; then
-        read -r -p "  Select [$default_index]: " reply || reply=""
-    fi
-    reply="${reply:-$default_index}"
-    if ! [[ "$reply" =~ ^[0-9]+$ ]] || (( reply < 1 || reply >= index )); then
-        reply="$default_index"
-    fi
+    while true; do
+        IFS= read -rsn1 key || key=""
+        case "$key" in
+            ''|$'\n'|$'\r') break ;;
+            [Jj]) sel=$(( (sel + 1) % count )) ;;
+            [Kk]) sel=$(( (sel - 1 + count) % count )) ;;
+            [1-9])
+                if (( key >= 1 && key <= count )); then
+                    sel=$(( key - 1 ))
+                fi
+                ;;
+            $'\x1b')
+                IFS= read -rsn2 -t 0.1 esc || esc=""
+                case "$esc" in
+                    '[B'|'OB') sel=$(( (sel + 1) % count )) ;;
+                    '[A'|'OA') sel=$(( (sel - 1 + count) % count )) ;;
+                esac
+                ;;
+        esac
 
-    index=1
-    UI_ANSWER=""
-    for option in $options; do
-        if (( index == reply )); then
-            UI_ANSWER="$option"
-            break
-        fi
-        index=$(( index + 1 ))
+        # Redraw the question + option block in place.
+        printf '\033[%dA' $(( count + 1 ))
+        printf '  %s\n' "$prompt"
+        for (( i=0; i<count; i++ )); do
+            selected=0
+            if (( i == sel )); then selected=1; fi
+            ui__choose_line "${items[$i]}" "$selected"
+        done
     done
+
+    # Collapse the block into one line: question + chosen answer.
+    printf '\033[%dA' $(( count + 1 ))
+    for (( i=0; i<=count; i++ )); do
+        printf '\r\033[2K'
+        if (( i < count )); then printf '\n'; fi
+    done
+    printf '\033[%dA' "$count"
+    UI_ANSWER="${items[$sel]}"
+    printf '\r\033[2K  %s   %s\n' "$prompt" "$UI_ANSWER"
 }
 
 ui_save_answers() {
@@ -195,15 +315,12 @@ ui_collect_answers() {
         source "$FM_UI_ANSWERS"
     fi
 
-    FM_ANSWER_DOCK="${FM_ANSWER_DOCK:-no}"
+    # Dock defaults to No on every run, regardless of what was saved before.
+    FM_ANSWER_DOCK="no"
     FM_ANSWER_PASSWORD_MANAGER="${FM_ANSWER_PASSWORD_MANAGER:-Zoho Vault}"
     FM_ANSWER_DEV="${FM_ANSWER_DEV:-yes}"
 
-    local dock_default="n"
-    if [[ "$FM_ANSWER_DOCK" == "yes" ]]; then
-        dock_default="y"
-    fi
-    if ui_confirm "Do you prefer a dock on your workstation?" "$dock_default"; then
+    if ui_confirm "Do you prefer a dock on your workstation?" "n"; then
         FM_ANSWER_DOCK="yes"
     else
         FM_ANSWER_DOCK="no"
@@ -217,17 +334,22 @@ ui_collect_answers() {
         "LastPass")    password_default=4 ;;
     esac
     ui_choose \
-        "Do you already use a password manager? Zoho Vault is free for personal use and recommended if you don't have one." \
-        "1Password|Proton Pass|Bitwarden|LastPass|Zoho Vault" \
+        "Do you already use a password manager?" \
+        "1Password|Proton Pass|Bitwarden|LastPass|Zoho Vault (free for personal use, recommended)" \
         "$password_default"
-    FM_ANSWER_PASSWORD_MANAGER="$UI_ANSWER"
+    # Keep the saved value as the bare product name, not the display hint.
+    case "$UI_ANSWER" in
+        "Zoho Vault"*) FM_ANSWER_PASSWORD_MANAGER="Zoho Vault" ;;
+        *)             FM_ANSWER_PASSWORD_MANAGER="$UI_ANSWER" ;;
+    esac
 
     local dev_default="y"
     if [[ "$FM_ANSWER_DEV" == "no" ]]; then
         dev_default="n"
     fi
-    if ui_confirm "Do you intend to use this machine for crafting software?
-     Don't worry, we won't bloat your machine. Just some essentials and nice to haves." "$dev_default"; then
+    if ui_confirm \
+        "Do you intend to use this machine for crafting software?" "$dev_default" \
+        "Don't worry — just some essentials and nice-to-haves."; then
         FM_ANSWER_DEV="yes"
     else
         FM_ANSWER_DEV="no"

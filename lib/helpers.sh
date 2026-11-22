@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-c_reset="\033[0m"
-c_brand="\033[38;2;220;20;60m"   # crimson
-c_dim="\033[2m"
+# Real escape bytes, not literal backslash sequences: these are passed through
+# printf %s arguments, which do not interpret escapes.
+c_reset=$'\033[0m'
+c_brand=$'\033[38;2;220;20;60m'   # crimson
+c_dim=$'\033[2m'
 
 # for logging colors
-c_info="\033[1;34m"; c_ok="\033[1;32m"; c_warn="\033[1;33m"; c_err="\033[1;31m"
+c_info=$'\033[1;34m'; c_ok=$'\033[1;32m'; c_warn=$'\033[1;33m'; c_err=$'\033[1;31m'
 
 info() {
     if (( ${FM_UI_ACTIVE:-0} )); then
@@ -81,6 +83,19 @@ enable_copr() {
     else
         ui_exec sudo dnf copr enable -y "$copr_name"
     fi
+}
+
+# Same as enable_copr, but a failure is logged quietly and returned to the
+# caller instead of printing the red "command failed" block. For optional
+# packages (e.g. Ghostty) whose COPR does not build on every Fedora release.
+enable_copr_try() {
+    local copr_name="$1"
+    local repo_file="/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:${copr_name//\//:}.repo"
+    if [[ -f "$repo_file" ]]; then
+        info "COPR already enabled: $copr_name"
+        return 0
+    fi
+    ui_exec_quiet sudo dnf copr enable -y "$copr_name"
 }
 
 # shellcheck source=lib/installer-ui.sh
