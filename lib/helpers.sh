@@ -34,10 +34,20 @@ warn() {
 
 error() {
     if (( ${FM_UI_ACTIVE:-0} )); then
-        ui_note "${c_err}✖${c_reset} $*"
+        # During an install the reason belongs in the log: install.sh's ERR
+        # trap reports the failure as a single line on screen.
+        mkdir -p "$(dirname "${FM_UI_LOG:-$PWD/install.log}")" 2>/dev/null || true
+        printf 'error: %s\n' "$*" >> "${FM_UI_LOG:-$PWD/install.log}" 2>/dev/null || true
     else
         echo -e "${c_err}✖${c_reset} $*" >&2
     fi
+}
+
+# One line for any failure: install.sh and `fm upgrade` install this as an ERR
+# trap, so the user never sees a command dump — the details go to $FM_UI_LOG.
+fm_fail() {
+    printf '\r\033[2K%s✖ Installation failed.%s\n' "$c_err" "$c_reset" >&2
+    exit 1
 }
 
 print_banner() {

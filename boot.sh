@@ -2,6 +2,7 @@
 set -euo pipefail
 
 c_reset=$'\033[0m'
+c_err=$'\033[1;31m'
 c_brand=$'\033[38;2;167;139;250m'   # violet
 
 REPO_URL="https://github.com/pnpancholi/fm-fedora.git"
@@ -16,6 +17,13 @@ if [ "$(id -u)" -eq 0 ]; then
     echo "Please run this as your normal user, not root. It will ask for sudo when needed." >&2
     exit 1
 fi
+
+# Any failure before handing over to install.sh reports the same single line.
+fm_fail() {
+    printf '%s✖ Installation failed.%s\n' "$c_err" "$c_reset" >&2
+    exit 1
+}
+trap fm_fail ERR
 
 say "Authenticating sudo (asked once)..."
 sudo -v
