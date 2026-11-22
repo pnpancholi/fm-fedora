@@ -18,24 +18,24 @@ STEP_LABEL="Installing user software"
 
 # Chrome: Google's own RPM repo. Not in Fedora or RPM Fusion.
 # Key: Google, Inc. (Linux Package Signing Authority)
-#       EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796 → rpm key id d38b4796
+#       EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796
 CHROME_REPO_ID="google-chrome"
 CHROME_REPO_FILE="/etc/yum.repos.d/google-chrome.repo"
 CHROME_BASEURL="https://dl.google.com/linux/chrome/rpm/stable/x86_64"
 CHROME_GPGKEY="https://dl.google.com/linux/linux_signing_key.pub"
-CHROME_KEY_PKG="gpg-pubkey-d38b4796"
+CHROME_KEY_FP="EB4C1BFD4F042F6DDDCCEC917721F63BD38B4796"
 CHROME_PKG="google-chrome-stable"
 CHROME_BIN="google-chrome"
 
 # Opera: Opera's own RPM repo. Not in Fedora or RPM Fusion.
 # Key: Opera Software Archive Automatic Signing Key 2025
-#       6C86 BE21 4648 3766 80CA 957B 11EE 8C00 B693 A745 → rpm key id b693a745
+#       6C86 BE21 4648 3766 80CA 957B 11EE 8C00 B693 A745
 #       expires 2027-05-19 — re-pin here if Opera rotates it again.
 OPERA_REPO_ID="opera"
 OPERA_REPO_FILE="/etc/yum.repos.d/opera.repo"
 OPERA_BASEURL="https://rpm.opera.com/rpm"
 OPERA_GPGKEY="https://rpm.opera.com/rpmrepo.key"
-OPERA_KEY_PKG="gpg-pubkey-b693a745"
+OPERA_KEY_FP="6C86BE214648376680CA957B11EE8C00B693A745"
 OPERA_PKG="opera-stable"
 OPERA_BIN="opera"
 
@@ -45,10 +45,13 @@ OPERA_BIN="opera"
 # repackages the official GitHub tarball on Fedora's own build infrastructure
 # (ADR-007). It ships the .desktop file itself, including the
 # x-scheme-handler/obsidian registration, so there is nothing for us to write.
+# Since 1.13.6-2 the basename matches the Wayland app_id
+# (md.obsidian.Obsidian.desktop); older builds shipped obsidian.desktop.
 OBSIDIAN_COPR="kmf/Obsidian"
 OBSIDIAN_PKG="obsidian"
 OBSIDIAN_BIN="obsidian"
-OBSIDIAN_DESKTOP="/usr/share/applications/obsidian.desktop"
+OBSIDIAN_DESKTOP="/usr/share/applications/md.obsidian.Obsidian.desktop"
+OBSIDIAN_DESKTOP_LEGACY="/usr/share/applications/obsidian.desktop"
 
 # Blip: no Fedora RPM exists and no COPR builds one, so the only route the
 # vendor supports on Fedora is its own installer script — the "Other" tab on
@@ -99,10 +102,24 @@ fm_record_failure() {
     warn "Unable to install software: \"$1\""
 }
 
+# rpm_has_key <fingerprint>
+#
+# True when the vendor key is in rpm's keyring. rpm 6 (Fedora 45+) records the
+# full fingerprint in the gpg-pubkey VERSION field; rpm 4 recorded only the
+# last 8 hex digits. Match either form exactly — a substring grep would accept
+# any fingerprint that merely happens to contain those digits.
+rpm_has_key() {
+    local fp versions
+    fp="$(printf '%s' "$1" | tr 'A-F' 'a-f')"
+    versions="$(rpm -q gpg-pubkey --qf '%{VERSION}\n' 2>/dev/null || true)"
+    grep -qxF -- "$fp" <<<"$versions" \
+        || grep -qxF -- "${fp: -8}" <<<"$versions"
+}
+
 # ── Vendor repo helper ──
 #
 # add_vendor_repo <name> <repo_file> <repo_id> <baseurl> <gpgkey_url>
-#                 <key_pkg> <pkg> <bin>
+#                 <key_fp> <pkg> <bin>
 #
 # Clean-source rules, applied to every vendor repo in this module:
 #   * gpgcheck=1 always, with an explicit gpgkey= URL — never --nogpgcheck.
@@ -116,7 +133,7 @@ fm_record_failure() {
 #   * Any failure records the app and returns; the run always continues.
 add_vendor_repo() {
     local name="$1" repo_file="$2" repo_id="$3" baseurl="$4"
-    local gpgkey_url="$5" key_pkg="$6" pkg="$7" bin="$8"
+    local gpgkey_url="$5" key_fp="$6" pkg="$7" bin="$8"
 
     if [[ -f "$repo_file" ]] && grep -qE '^gpgcheck[[:space:]]*=[[:space:]]*0' "$repo_file"; then
         warn "$repo_file has gpgcheck=0 — refusing to install $name from it"
@@ -146,7 +163,7 @@ EOF
 
     # Record before the install so a failure still lands in the verify pass.
     FM_SOFTWARE_PKGS+=("$pkg")
-    FM_SOFTWARE_KEYS+=("$key_pkg")
+    FM_SOFTWARE_KEYS+=("$key_fp")
     FM_SOFTWARE_BINS+=("$bin")
 
     # -y lets dnf pull the key from gpgkey= without prompting; with
@@ -273,12 +290,12 @@ fi
 # is recorded, and the module moves on.
 ui_step
 add_vendor_repo "Google Chrome" "$CHROME_REPO_FILE" "$CHROME_REPO_ID" \
-    "$CHROME_BASEURL" "$CHROME_GPGKEY" "$CHROME_KEY_PKG" \
+    "$CHROME_BASEURL" "$CHROME_GPGKEY" "$CHROME_KEY_FP" \
     "$CHROME_PKG" "$CHROME_BIN"
 
 ui_step
 add_vendor_repo "Opera" "$OPERA_REPO_FILE" "$OPERA_REPO_ID" \
-    "$OPERA_BASEURL" "$OPERA_GPGKEY" "$OPERA_KEY_PKG" \
+    "$OPERA_BASEURL" "$OPERA_GPGKEY" "$OPERA_KEY_FP" \
     "$OPERA_PKG" "$OPERA_BIN"
 
 # ── a. Default browser ──
@@ -417,7 +434,7 @@ verify_software_installation() {
         fi
         # The vendor key must actually be in rpm's keyring, or the next
         # `dnf upgrade` trips over a NOKEY it has never seen before.
-        if ! rpm -q "${FM_SOFTWARE_KEYS[$i]}" >/dev/null 2>&1; then
+        if ! rpm_has_key "${FM_SOFTWARE_KEYS[$i]}"; then
             warn "Signing key missing: ${FM_SOFTWARE_KEYS[$i]}"
             failed=1
         fi
@@ -477,8 +494,9 @@ verify_software_installation() {
             failed=1
         fi
         # The RPM ships this itself — it is also what registers the
-        # obsidian:// URI handler for the launcher.
-        if [[ ! -f "$OBSIDIAN_DESKTOP" ]]; then
+        # obsidian:// URI handler for the launcher. 1.13.6-2 renamed the file
+        # to md.obsidian.Obsidian.desktop; accept the older name too.
+        if [[ ! -f "$OBSIDIAN_DESKTOP" && ! -f "$OBSIDIAN_DESKTOP_LEGACY" ]]; then
             warn "Desktop entry missing: $OBSIDIAN_DESKTOP"
             failed=1
         fi

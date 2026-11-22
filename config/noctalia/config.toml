@@ -29,7 +29,7 @@ directory = "~/Pictures/wallpapers"
 # Initial wallpaper on every output. Picking one in the UI rewrites this key in
 # settings.toml, which loads after this file.
 [wallpaper.default]
-path = "~/Pictures/wallpapers/dw.jpg"
+path = "~/Pictures/wallpapers/wp.png"
 
 # ==============================================================================
 # Dock — explicitly off
