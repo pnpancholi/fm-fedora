@@ -151,7 +151,7 @@ ui__truncate() {
 
 ui__confirm_line() {
     local prompt="$1" sel="$2"
-    printf '\r\033[2K  %s   ' "$prompt"
+    printf '\r\033[2K%s   ' "$prompt"
     if (( sel )); then
         printf '%sNo%s   %s[Yes]%s' "$c_dim" "$c_reset" "$c_brand" "$c_reset"
     else
@@ -176,9 +176,9 @@ ui__choose_line() {
     local text="$1" selected="$2"
     text="$(ui__truncate "$text")"
     if [[ "$selected" == "1" ]]; then
-        printf '   %s❯%s %s\n' "$c_brand" "$c_reset" "$text"
+        printf '%s❯%s %s\n' "$c_brand" "$c_reset" "$text"
     else
-        printf '     %s%s%s\n' "$c_dim" "$text" "$c_reset"
+        printf '  %s%s%s\n' "$c_dim" "$text" "$c_reset"
     fi
 }
 
@@ -193,7 +193,7 @@ ui_confirm() {
     if [[ ! -t 0 || ! -t 1 ]]; then
         answer="No"
         if (( sel )); then answer="Yes"; fi
-        printf '  %s   %s\n' "$prompt" "$answer"
+        printf '%s   %s\n' "$prompt" "$answer"
         if (( sel == 1 )); then return 0; else return 1; fi
     fi
 
@@ -222,9 +222,9 @@ ui_confirm() {
     printf '\r\033[2K'
     answer="No"
     if (( sel )); then answer="Yes"; fi
-    printf '\r\033[2K  %s   %s\n' "$prompt" "$answer"
+    printf '\r\033[2K%s   %s\n' "$prompt" "$answer"
     if [[ -n "$hint" ]]; then
-        printf '  %s%s%s\n' "$c_dim" "$(ui__truncate "$hint")" "$c_reset"
+        printf '%s%s%s\n' "$c_dim" "$(ui__truncate "$hint")" "$c_reset"
     fi
     if (( sel == 1 )); then return 0; else return 1; fi
 }
@@ -245,11 +245,11 @@ ui_choose() {
 
     if [[ ! -t 0 || ! -t 1 ]]; then
         UI_ANSWER="$(ui__choose_value "${items[$sel]}")"
-        printf '  %s   %s\n' "$prompt" "$UI_ANSWER"
+        printf '%s   %s\n' "$prompt" "$UI_ANSWER"
         return
     fi
 
-    printf '  %s\n' "$prompt"
+    printf '%s\n' "$prompt"
     for (( i=0; i<count; i++ )); do
         selected=0
         if (( i == sel )); then selected=1; fi
@@ -278,7 +278,7 @@ ui_choose() {
 
         # Redraw the question + option block in place.
         printf '\033[%dA' $(( count + 1 ))
-        printf '  %s\n' "$prompt"
+        printf '%s\n' "$prompt"
         for (( i=0; i<count; i++ )); do
             selected=0
             if (( i == sel )); then selected=1; fi
@@ -294,7 +294,7 @@ ui_choose() {
     done
     printf '\033[%dA' "$count"
     UI_ANSWER="$(ui__choose_value "${items[$sel]}")"
-    printf '\r\033[2K  %s   %s\n' "$prompt" "$UI_ANSWER"
+    printf '\r\033[2K%s   %s\n' "$prompt" "$UI_ANSWER"
 }
 
 ui_save_answers() {
