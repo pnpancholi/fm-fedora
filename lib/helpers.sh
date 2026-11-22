@@ -51,7 +51,12 @@ fm_fail() {
 }
 
 print_banner() {
-    printf '\n%s  fm-fedora%s — your Fedora box, set up your way.\n\n' \
+    # Callers stack (bin/fm sources install.sh), so print only once per run.
+    if (( ${FM_BANNER_SHOWN:-0} )); then
+        return 0
+    fi
+    FM_BANNER_SHOWN=1
+    printf '\n%sfm-fedora%s — your Fedora box, set up your way.\n\n' \
         "$c_brand" "$c_reset"
 }
 

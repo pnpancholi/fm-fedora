@@ -29,7 +29,8 @@ fi
 # boot.sh is unaffected: a first install has no session, so the upgrade runs.
 ui_step
 if [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]]; then
-  warn "Graphical session detected — system upgrade skipped; run 'sudo dnf upgrade --refresh' from a TTY, then reboot"
+  # Silent by design: upgrading live kills the bar/compositor (ADR-004).
+  :
 else
   ui_exec sudo dnf upgrade -y --refresh
 fi
